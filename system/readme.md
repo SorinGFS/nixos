@@ -111,10 +111,10 @@ Official references: [package management](https://nixos.org/manual/nixos/stable/
 
 ## Update the desktop input and apply it
 
-From the local machine flake directory, update the lock file and rebuild as root:
+From any directory, run this standalone command. Enter the root password when prompted; it updates the GitHub desktop input and its dependencies in the machine-local `/etc/nixos/flake.lock`, then builds and activates the machine configuration. Local hardware, accounts, storage, and boot settings remain defined by that machine's configuration.
 
 ```bash
-    su -c 'nix flake update && nixos-rebuild switch --flake path:.'
+    cd /etc/nixos && su -c 'nix flake update && nixos-rebuild switch --flake path:.'
 ```
 
 Shared-source changes become available through the GitHub `desktop` input after publication.

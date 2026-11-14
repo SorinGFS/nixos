@@ -17,6 +17,7 @@ NixOS 26.05 with GNOME. For installation, see [install.md](install.md); this coo
 
 - [System configuration, packages and upgrades](system/readme.md)
 - [Integrate the desktop module](system/readme.md#integrate-the-desktop-module)
+- [Update from GitHub](system/readme.md#update-the-desktop-input-and-apply-it)
 - [Unlock and mount data storage](system/readme.md#unlock-and-mount-data-storage)
 - [Boot storage inspection](system/readme.md#inspect-boot-storage)
 - [Bash and console access](system/readme.md#bash-and-console-access)
