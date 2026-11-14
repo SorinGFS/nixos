@@ -31,47 +31,43 @@ The local configuration retains its existing hostname, user accounts, hardware i
 
 Data protection requires a separate backup in addition to the data partition.
 
-For a local configuration with the described data volume, these commands run in the installed NixOS session as an authorized operator. This example keeps the home directory on the Linux root filesystem and mounts the data volume at `/data`.
-
-Identify the data partition with:
+A data disk can appear in GNOME Files without an `/etc/fstab` entry. After reboot an encrypted volume may appear locked; clicking it in Files can prompt for unlocking or open it. Alternatively, identify the physical partition with `lsblk -fp` and unlock the verified BitLocker partition in a normal user terminal:
 
 ```bash
-    lsblk -p
-```
-
-The prompt accepts the verified full path of that physical partition. The existing data volume retains its filesystem and contents.
-
-```bash
-    read -r -p 'BitLocker partition: ' data_partition
-```
-
-The prompt accepts the BitLocker password or recovery password; desktop authorization may also be requested.
-
-```bash
+    read -r -p 'BitLocker partition path: ' data_partition
     udisksctl unlock -b "$data_partition"
 ```
 
+Enter the BitLocker password or recovery password when prompted; desktop authorization may also be requested. Inspect `lsblk -fp` again to identify the unlocked filesystem and its label. To let udisks choose the mount location, enter the verified unlocked filesystem device path:
+
 ```bash
-    udisksctl mount -b /dev/disk/by-label/NIXOS_DATA
+    read -r -p 'Unlocked filesystem device path: ' data_device
+    udisksctl mount -b "$data_device"
 ```
 
-Official reference: [udisksctl unlock and mount](https://storaged.org/doc/udisks2-api/latest/udisksctl.1.html).
+The command reports its mount point, normally under `/run/media/$USER/LABEL`, not `/data`.
 
-The [installation procedure](../install.md) covers first installation and live-environment storage steps.
+To mount an unlocked **NTFS** filesystem explicitly at `/data` instead, unlock it without mounting it first. Ensure it is not already mounted and that `/data` is an appropriate empty mount point. In the normal user terminal, record the numerical UID and primary GID with `id -u` and `id -g`. Identify the unlocked filesystem's label with `lsblk -fp`, then replace `UID`, `GID`, and the quoted `LABEL` below with those verified values, escaping shell-special characters in the label. This example gives the selected user access with restrictive masks and does not format the filesystem or change its stored ownership:
 
-Mounted storage can support [project-relative commands](#before-running-commands).
+```bash
+    su -c 'mkdir -p /data && mount -t ntfs3 -o uid=UID,gid=GID,dmask=0077,fmask=0077,nosuid,nodev -L "LABEL" /data'
+```
+
+No automatic boot mount is required. Official reference: [udisksctl unlock and mount](https://storaged.org/doc/udisks2-api/latest/udisksctl.1.html). The [installation procedure](../install.md) covers first installation and live-environment storage steps.
 
 ## Before running commands
 
-Commands run in the installed NixOS session as the administrator; administration uses root authentication through `su -c`. Project-relative tasks run from the repository root.
+Commands run in the installed NixOS session as the normal user. Commands explicitly using `su -c` request root authentication. Project-relative tasks run from the repository root.
 
 ## Apply native configuration edits
 
-After saving local configuration edits, run the following from the directory containing the local flake. The local flake provides a `nixosConfigurations` entry matching the current hostname:
+For edits to the machine-local configuration in `/etc/nixos`, run the following from the directory containing the local flake. The local flake provides a `nixosConfigurations` entry matching the current hostname:
 
 ```bash
     su -c 'nixos-rebuild switch --flake path:.'
 ```
+
+For edits to shared `system/` or `settings/` sources in a public checkout, publish the source changes and then use [Update the desktop input and apply it](#update-the-desktop-input-and-apply-it) to refresh the local lock and rebuild. Rebuilding with an unchanged locked GitHub input does not apply checkout edits.
 
 A successful rebuild applies system configuration and unlocked GNOME and Firefox defaults in `settings/`. Continuation depends on the rebuild result. Existing user preferences take precedence. GH, VLC, and VSCodium defaults seed missing user files at user-manager startup or activation; existing files remain user-owned. A new login may be needed.
 
@@ -97,21 +93,21 @@ Bootloader and kernel payloads occupy boot storage; Nix store closures and retai
 
 ## Install or uninstall a native application
 
-[NixOS package search](https://search.nixos.org/packages) identifies attributes for the existing native package list:
+[NixOS package search](https://search.nixos.org/packages) identifies package attributes. For machine-specific packages, edit `environment.systemPackages` in the local configuration, with `pkgs` available to the module, then [apply the local edit](#apply-native-configuration-edits).
+
+The shared desktop baseline has its own package list:
 
 ```bash
     codium ./system/desktop-features.nix
 ```
 
-For example, `gnumake` is already in `environment.systemPackages = with pkgs; [ ... ]` and supplies `make`. Its presence in that list determines installation; changes reach the local system when its desktop input includes them and the operator [applies the configuration](#apply-native-configuration-edits).
-
-Module-managed features use their existing module options. Native application installation is owned exclusively by the declarative system configuration.
+For example, `gnumake` is already in that shared `environment.systemPackages = with pkgs; [ ... ]` list and supplies `make`. Shared baseline edits require publication and an input update as described in [Apply native configuration edits](#apply-native-configuration-edits). Module-managed features use their existing module options. User profiles and [one-off tools](#one-off-tools-from-github-flakes) provide separate alternatives.
 
 Official references: [package management](https://nixos.org/manual/nixos/stable/#sec-package-management), [configuration and module syntax](https://nixos.org/manual/nixos/stable/#sec-configuration-syntax).
 
 ## Update the desktop input and apply it
 
-From any directory, run this standalone command. Enter the root password when prompted; it updates the GitHub desktop input and its dependencies in the machine-local `/etc/nixos/flake.lock`, then builds and activates the machine configuration. Local hardware, accounts, storage, and boot settings remain defined by that machine's configuration.
+From any directory, run this standalone command. Enter the root password when prompted; it updates all local flake inputs, including the GitHub desktop input and its dependencies, in the machine-local `/etc/nixos/flake.lock`, then builds and activates the machine configuration. Local hardware, accounts, storage, and boot settings remain defined by that machine's configuration.
 
 ```bash
     cd /etc/nixos && su -c 'nix flake update && nixos-rebuild switch --flake path:.'

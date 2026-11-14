@@ -36,7 +36,7 @@ gnome-extensions enable dash-to-panel@jderose9.github.com
 gnome-extensions prefs dash-to-panel@jderose9.github.com
 ```
 
-The project defaults, including the first-monitor layout, are in `settings/dash-to-panel/index.json`. The five `panel-*` layout maps are JSON objects here; the Nix module serializes them to the strings expected by the extension. Source edits take effect as defaults after rebuilding; existing user overrides still win.
+The project defaults, including the first-monitor layout, are in `settings/dash-to-panel/index.json`. The five `panel-*` layout maps are JSON objects here; the Nix module serializes them to the strings expected by the extension. Source edits take effect as defaults after [project activation](../../system/readme.md#apply-native-configuration-edits); existing user overrides still win.
 
 ## Temporary deactivation
 
