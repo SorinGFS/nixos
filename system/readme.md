@@ -119,6 +119,26 @@ From any directory, run this standalone command. Enter the root password when pr
 
 Shared-source changes become available through the GitHub `desktop` input after publication.
 
+## One-off tools from GitHub flakes
+
+In a normal user terminal, run an exported program once:
+
+```bash
+    nix run github:OWNER/REPO#APP
+```
+
+Replace `OWNER/REPO` with the GitHub repository and `APP` with its exported program name, as documented by that project. Not every flake exports a program. The program's actions can make persistent changes of their own.
+
+To use an exported package in a temporary shell environment:
+
+```bash
+    nix shell github:OWNER/REPO#PACKAGE
+```
+
+Replace `PACKAGE` with an exported package name documented by that project. Not every flake exports a package. Type `exit` to leave the shell environment.
+
+Neither command adds an input to `/etc/nixos/flake.nix` or updates its lockfile. Downloaded and built store objects remain cached after either command.
+
 ## Bash and console access
 
 The system-managed interactive Bash configuration in [system/core.nix](core.nix) applies to new interactive Bash sessions, including Kitty and the VSCodium terminal, after [applying the project](#apply-native-configuration-edits).
