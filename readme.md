@@ -25,10 +25,6 @@ NixOS 26.05 with GNOME. For installation, see [install.md](install.md); this coo
 - [Planned media and document tools](system/readme.md#planned-media-and-document-tools)
 - [KeePass launcher](system/readme.md#launch-the-existing-keepass-application-with-gtk-2-libraries)
 
-### Personal setup
-
-Personal post-install scripts and preferences are privately managed and are not part of this public desktop configuration.
-
 ### Settings
 
 - [Native settings defaults and validation](settings/readme.md)
