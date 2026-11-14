@@ -1,0 +1,22 @@
+{
+    "browser.startup.homepage": "https://start.duckduckgo.com/",
+    "browser.contentblocking.category": "standard",
+    "browser.privatebrowsing.autostart": true,
+    "privacy.globalprivacycontrol.enabled": true,
+    "signon.rememberSignons": false,
+    "browser.download.folderList": 0,
+    "browser.tabs.loadInBackground": false,
+    "browser.theme.toolbar-theme": 0,
+    "browser.toolbars.bookmarks.visibility": "always",
+    "browser.newtabpage.activity-stream.feeds.topsites": false,
+    "browser.newtabpage.activity-stream.showSearch": false,
+    "browser.urlbar.suggest.bookmark": false,
+    "browser.urlbar.suggest.history": false,
+    "browser.urlbar.suggest.openpage": false,
+    "browser.urlbar.suggest.topsites": false,
+    "general.autoScroll": false,
+    "datareporting.healthreport.uploadEnabled": false,
+    "findbar.highlightAll": true,
+    "layout.spellcheckDefault": 0,
+    "privacy.sanitize.sanitizeOnShutdown": true
+}

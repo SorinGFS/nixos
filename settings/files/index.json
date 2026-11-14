@@ -1,0 +1,22 @@
+{
+    "org/gnome/nautilus/preferences/default-folder-viewer": "list-view",
+    "org/gnome/nautilus/list-view/default-column-order": [
+        "name",
+        "size",
+        "type",
+        "owner",
+        "group",
+        "permissions",
+        "date_modified",
+        "date_accessed",
+        "date_created",
+        "recency",
+        "detailed_type"
+    ],
+    "org/gnome/nautilus/list-view/default-visible-columns": [
+        "name",
+        "size",
+        "date_modified"
+    ],
+    "org/gnome/nautilus/list-view/use-tree-view": true
+}

@@ -1,0 +1,19 @@
+{
+    "aaron-bond.better-comments": "3.1.1",
+    "donjayamanne.githistory": "0.6.20",
+    "ecmel.vscode-html-css": "2.0.14",
+    "esbenp.prettier-vscode": "12.4.0",
+    "formulahendry.auto-rename-tag": "0.1.10",
+    "foxundermoon.shell-format": "7.2.8",
+    "jnoortheen.nix-ide": "0.5.13",
+    "mechatroner.rainbow-csv": "3.24.1",
+    "ms-python.debugpy": "2026.6.0",
+    "ms-python.python": "2026.4.0",
+    "ms-python.vscode-python-envs": "1.40.0",
+    "pranaygp.vscode-css-peek": "4.5.1",
+    "redhat.vscode-yaml": "2.0.0",
+    "sdras.night-owl": "2.1.1",
+    "soringfs.codium-workspace-data": "0.2.1",
+    "vscode-icons-team.vscode-icons": "13.0.0",
+    "xabikos.javascriptsnippets": "1.8.0"
+}
