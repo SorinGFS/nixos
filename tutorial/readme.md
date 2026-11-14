@@ -6,9 +6,9 @@
 
 **Rationale:** You should know what you are learning before changing a computer you depend on.
 
-**Explanation:** This tutorial assumes no Nix, functional-programming, or declarative-configuration knowledge. “Hero” means being able to explain, inspect, change, build, activate, update, recover, and reuse a modest NixOS configuration—not memorizing every option or becoming a distribution maintainer. It starts with an **already installed NixOS machine**. Installation, partitioning, bootloader selection, hardware drivers, and migration from another distribution are outside its scope; use the [official NixOS manual](https://nixos.org/manual/nixos/stable/) for those machine-specific decisions. Nix package and language exercises also make sense on another supported system with Nix installed, but NixOS activation commands do not.
+**Explanation:** This tutorial introduces Nix, functional programming, and declarative configuration from first principles. “Hero” means being able to explain, inspect, change, build, activate, update, recover, and reuse a modest NixOS configuration, with the skills to look up further options as needed. It starts with an **already installed NixOS machine**. Installation, partitioning, bootloader selection, hardware drivers, and migration from another distribution are outside its scope; use the [official NixOS manual](https://nixos.org/manual/nixos/stable/) for those machine-specific decisions. Nix package and language exercises also make sense on another supported system with Nix installed, while NixOS activation commands apply specifically to NixOS hosts.
 
-The documentation baseline is **NixOS 26.05 and the Nix 2.34.9 reference manual**, from sources retrieved **2026-11-14 UTC**. This is not a claim about your installed release. The stable NixOS manual names the `nixos-26.05` branch; the retrieved Nix reference identifies itself as 2.34.9. Interfaces and options can differ on your machine. Do not turn this exercise into an accidental release upgrade.
+Examples target **NixOS 26.05 and Nix 2.34.9**, with a reference baseline of **2026-11-14**. Check your installed versions and use their matching manuals. Keep the installed release branch until you deliberately plan an upgrade.
 
 **Example:** **READ-ONLY**, from any directory, record your actual versions before proceeding:
 
@@ -17,7 +17,7 @@ nix --version
 nixos-version
 ```
 
-On a non-NixOS host, the second command may not exist; stop before the system-configuration stages. No installation commands are provided here.
+On another supported OS with Nix installed, follow the package and language exercises; reserve system-configuration stages for an installed NixOS host.
 
 **Expected outcome:** You know whether the NixOS stages apply and can compare your actual versions with this tutorial’s documentation baseline.
 
@@ -25,13 +25,13 @@ On a non-NixOS host, the second command may not exist; stop before the system-co
 
 **Rationale:** Much confusion comes from treating “a package exists,” “a package is available,” and “a system is running” as the same event.
 
-**Explanation:** **Source describes a desired result; Nix prepares results in the store; a profile or activation step chooses what becomes available or runs.** Editing a file is not activation. Downloading a package is not enabling its service. Updating pins is not updating a running machine.
+**Explanation:** **Source describes a desired result; Nix prepares results in the store; a profile or activation step chooses what becomes available or runs.** Editing changes source; downloading prepares store artifacts; updating pins selects input revisions. Service enablement takes effect through system activation.
 
-Think of a recipe book, a pantry of prepared results, and a selected menu. This analogy helps separate description, storage, and selection. Its limit: a real computer also has mutable files, processes, devices, and databases; Nix does not freeze or restore all of those.
+Think of a recipe book, a pantry of prepared results, and a selected menu. This analogy helps separate description, storage, and selection. Its limit: a real computer also has mutable files, processes, devices, and databases; those require their own persistence and recovery plans.
 
-[Video insight, approximately 00:03:00–00:15:00](https://www.youtube.com/watch?v=zdZvKWpNzU8&t=180s): the recipe and dependency discussion is a useful introduction. The more precise implementation model comes from the [derivation reference](https://nix.dev/manual/nix/stable/language/derivations.html) and [NixOS configuration manual](https://nixos.org/manual/nixos/stable/#sec-changing-config).
+The [derivation reference](https://nix.dev/manual/nix/stable/language/derivations.html) and [NixOS configuration manual](https://nixos.org/manual/nixos/stable/#sec-changing-config) describe the build and activation mechanisms behind this model.
 
-**Example:** No command is needed. Imagine changing a package list in a text editor: the source has changed, but your current terminal and services have not. Building the result prepares it; activation is a separate decision.
+**Example:** Imagine changing a package list in a text editor: the source has changed while your current terminal and services retain their existing state. Building the result prepares it; activation is a separate decision.
 
 **Expected outcome:** Before any operation, you can ask: “Am I changing source, preparing artifacts, changing my profile, or activating the operating system?”
 
@@ -41,25 +41,23 @@ Think of a recipe book, a pantry of prepared results, and a selected menu. This 
 
 **Explanation:** Follow the dependencies in order: [mental model](#1-scope-safety-and-the-mental-model) → [pieces and evaluation](#2-meet-the-pieces-and-evaluate-a-first-expression) → [language](#3-read-the-nix-language-without-prior-programming-knowledge) → [modules](#4-understand-the-installed-configuration-and-modules) → [package scope](#5-choose-package-scope-temporary-use-user-profile-or-system) → [flake](#6-wrap-the-existing-system-in-one-flake) → [activation](#7-build-test-and-activate-deliberately) → [services](#8-add-users-networking-services-and-an-optional-desktop) → [updates](#9-update-inputs-pin-revisions-and-plan-release-upgrades) → [recovery](#10-recover-safely-and-understand-garbage-collection) → [development](#11-extend-the-same-flake-with-development-tools) → [reuse](#12-reuse-modules-customize-packages-and-compose-more-machines) → [diagnosis](#13-troubleshoot-systematically-and-choose-the-next-step). Advanced material depends on the same small configuration. References: [commands by task](#appendix-a-command-reference-by-task), [glossary](#appendix-b-glossary), [next steps](#appendix-c-next-step-plan), and [sources](#appendix-d-sources-and-evidence-limits).
 
-A terminal is a window for entering commands. A shell interprets them; Bash is the shell syntax used here. Run one command at a time and read its output before continuing. A command's working directory is its current folder. `PATH` is the list of folders the shell searches for executables, so the same command name can select different installed copies. Nix code belongs in Nix files or the explicitly quoted expression argument—not pasted directly into the shell.
-
-Every shell block uses Bash syntax, omits prompt characters, and uses one physical line per command. Commands are instructions for you to consider, **not commands executed while authoring this document**. Nix examples were cross-checked against retrieved documentation, not evaluated or built.
+A terminal is a window for entering commands. A shell interprets them; Bash is the shell syntax used here. Run one command at a time and read its output before continuing. A command's working directory is its current folder. `PATH` is the list of folders the shell searches for executables, so the same command name can select different installed copies. Save Nix code in Nix files or pass it through an explicitly quoted expression argument. Check each command’s prerequisites and effects before using it.
 
 Effect labels mean:
 
 | Label | Meaning |
 | --- | --- |
-| **READ-ONLY** | Intended inspection; Nix evaluation of external sources may still fetch, write caches/store metadata, or build through import-from-derivation. It is not universally effect-free. |
-| **BUILD-ONLY** | May download, write the store/cache, and execute builders; does not activate the OS. |
+| **READ-ONLY** | Intended inspection; Nix evaluation of external sources may still fetch, write caches/store metadata, or build through import-from-derivation. Account for those evaluation side effects. |
+| **BUILD-ONLY** | May download, write the store/cache, and execute builders; leaves OS activation unchanged. |
 | **SOURCE EDIT** | Changes configuration or lock files; may also fetch inputs when locking. |
-| **USER-PROFILE CHANGE** | Changes packages selected for the invoking user, not the OS generation. |
+| **USER-PROFILE CHANGE** | Changes packages selected for the invoking user; OS generations have a separate lifecycle. |
 | **SYSTEM CHANGE** | Activates services, accounts, networking, boot choices, passwords, or performs store cleanup. Read its specific warning. |
 
-Running an application or entering a development shell adds execution effects beyond BUILD-ONLY: applications and `shellHook` code run with your permissions. A Nix shell is **not** a security sandbox.
+Running an application or entering a development shell adds execution effects beyond BUILD-ONLY: applications and `shellHook` code run with your permissions. Shell programs retain normal user-level file and network access.
 
-`root` is the system administrator account. Use `sudo` only if installed, configured, and authorized for you. Otherwise, if authorized and you have the root password, use `su -` to enter a root shell and omit `sudo` from the indicated administrative commands; `exit` leaves that shell. Do not use root to run ordinary package experiments. Protect source edits under `/etc/nixos` using your existing authorized editing workflow; no particular editor is assumed.
+`root` is the system administrator account. Use `sudo` only if installed, configured, and authorized for you. Otherwise, if authorized and you have the root password, use `su -` to enter a root shell and omit `sudo` from the indicated administrative commands; `exit` leaves that shell. Run ordinary package experiments as your normal user. Protect source edits under `/etc/nixos` using your existing authorized editor and editing workflow.
 
-**Example:** No command is needed. In “from any directory,” the working directory is irrelevant. In “from `/etc/nixos`,” enter that directory first or use the exact absolute `path:` reference shown. Text such as `REPLACE_WITH_SYSTEM`, `COMMIT`, and `PROFILE_NAME` must be replaced, not typed literally. `workstation` is a deliberately fictional flake output name used consistently below—not your detected hostname.
+**Example:** In “from any directory,” the working directory is irrelevant. In “from `/etc/nixos`,” enter that directory first or use the exact absolute `path:` reference shown. Values such as `REPLACE_WITH_SYSTEM`, `COMMIT`, and `PROFILE_NAME` are placeholders: replace each with its verified value. `workstation` is a deliberately fictional flake output name used consistently below; your actual hostname remains configured separately.
 
 **Expected outcome:** You can identify prerequisites and side effects before copying an example, and know when to stop rather than invent missing machine details.
 
@@ -69,14 +67,14 @@ Running an application or entering a development shell adds execution effects be
 
 **Explanation:** Source, store, user environment, and running system are separate layers.
 
-**Example:** No command is needed. A friend edits a package list, updates `flake.lock`, builds the system, and then claims the new SSH service must already be running. Which claim is unsupported?
+**Example:** A friend edits a package list, updates `flake.lock`, builds the system, and then claims the new SSH service must already be running. Which claim is unsupported?
 
-**Expected outcome:** Success criterion: name the missing transition without assuming a successful build proves runtime behavior.
+**Expected outcome:** Success criterion: name the missing transition and identify the runtime observation needed after activation.
 
 <details>
 <summary>Worked solution</summary>
 
-Neither editing, locking, nor building activates SSH. The missing transition is system activation, followed by a runtime service check. Even activation can fail or leave partially changed services; inspect the result.
+System activation applies the declared SSH configuration; a runtime service check establishes its actual state. Editing, locking, and building prepare that transition. Inspect activation results because failures can leave services partially changed.
 
 </details>
 
@@ -86,11 +84,11 @@ Neither editing, locking, nor building activates SSH. The missing transition is 
 
 **Rationale:** Similar names hide different responsibilities.
 
-**Explanation:** **Nix** names both the configuration language and the package-management/build tooling. **Nixpkgs** is a collection of package definitions and supporting libraries written largely in that language. **NixOS** is a Linux distribution whose system configuration is assembled using Nix and Nixpkgs. The **Nix store**, normally `/nix/store`, holds source snapshots, build descriptions, packages, and generated files. A **flake** is a source tree with a standardized `flake.nix` entrypoint describing inputs and outputs; it is not another package manager or a requirement for using NixOS.
+**Explanation:** **Nix** names both the configuration language and the package-management/build tooling. **Nixpkgs** is a collection of package definitions and supporting libraries written largely in that language. **NixOS** is a Linux distribution whose system configuration is assembled using Nix and Nixpkgs. The **Nix store**, normally `/nix/store`, holds source snapshots, build descriptions, packages, and generated files. A **flake** is a source tree with a standardized `flake.nix` entrypoint describing inputs and outputs; NixOS also supports other entrypoints.
 
-Nix can manage packages without managing the host OS. NixOS goes further by composing operating-system files and services. See [language basics](https://nix.dev/tutorials/nix-language.html), [profiles](https://nix.dev/manual/nix/stable/package-management/profiles.html), and [flake concepts](https://nix.dev/concepts/flakes.html).
+Nix can manage packages independently of the host OS. NixOS goes further by composing operating-system files and services. See [language basics](https://nix.dev/tutorials/nix-language.html), [profiles](https://nix.dev/manual/nix/stable/package-management/profiles.html), and [flake concepts](https://nix.dev/concepts/flakes.html).
 
-**Example:** No command is needed. “Use Nixpkgs’ Hello package in a shell” needs Nix but not NixOS. “Declare the machine’s SSH service” uses NixOS modules. “Pin the Nixpkgs revision” is one job a flake lock can perform.
+**Example:** “Use Nixpkgs’ Hello package in a shell” works on supported hosts with Nix installed. “Declare the machine’s SSH service” uses NixOS modules. “Pin the Nixpkgs revision” is one job a flake lock can perform.
 
 **Expected outcome:** You can say which component supplies syntax, recipes, storage, OS integration, and input pinning.
 
@@ -106,19 +104,19 @@ Nix can manage packages without managing the host OS. NixOS goes further by comp
 nix --extra-experimental-features 'nix-command flakes' eval --expr '1 + 2'
 ```
 
-**Expected outcome:** Nix prints `3`. A missing executable or unsupported flag is a version/setup issue, not a reason to reinstall your system blindly.
+**Expected outcome:** Nix prints `3`. For a missing executable or unsupported flag, inspect the installed version and setup first.
 
 ### From evaluation to a running system
 
-**Rationale:** The word “rebuild” can suggest recompiling everything on every edit. Usually that is not what happens.
+**Rationale:** A rebuild can reuse existing store results and available binary substitutes.
 
 **Explanation:** Evaluation can produce a **derivation**, a build recipe identifying a builder and inputs. Nix records store-level build descriptions, then realizes needed outputs by fetching substitutes from configured binary caches or executing builds. Dependencies form a graph. A package’s **closure** includes its referenced runtime dependencies. NixOS assembles a top-level system result; activation then makes relevant changes to the running machine.
 
-Different versions and build variants can coexist at different store paths. Treat store results as immutable: change source and rebuild rather than editing files inside `/nix/store` ([NixOS store management](https://nixos.org/manual/nixos/stable/)). This does not make your documents or application databases immutable. The hash-like part of a store path is **not necessarily a checksum of the output contents**; input-addressed derivations commonly identify outputs from build inputs. Do not infer bit-for-bit reproducibility from a path name. See [derivations](https://nix.dev/manual/nix/stable/language/derivations.html) and [profiles](https://nix.dev/manual/nix/stable/package-management/profiles.html).
+Different versions and build variants can coexist at different store paths. Treat store results as immutable: change source and rebuild rather than editing files inside `/nix/store` ([NixOS store management](https://nixos.org/manual/nixos/stable/)). Documents and application databases remain mutable and need separate backups. The hash-like part of a store path is **not necessarily a checksum of the output contents**; input-addressed derivations commonly identify outputs from build inputs. Verify bit-for-bit reproducibility separately from store-path identity. See [derivations](https://nix.dev/manual/nix/stable/language/derivations.html) and [profiles](https://nix.dev/manual/nix/stable/package-management/profiles.html).
 
-Benefits include explicit dependencies and retained generations. Costs include disk use, evaluation complexity, cache/network dependence, and potentially expensive rebuilds when foundational inputs change. Not every downloaded non-Nix binary works unmodified on NixOS.
+Benefits include explicit dependencies and retained generations. Costs include disk use, evaluation complexity, cache/network dependence, and potentially expensive rebuilds when foundational inputs change. Downloaded non-Nix binaries can need compatibility work to run on NixOS.
 
-**Example:** No command is needed. Changing only a text configuration may reuse most packages. Changing a foundational library can require many downstream builds if substitutes are unavailable. Neither case automatically changes your documents or database schema safely.
+**Example:** Changing only a text configuration may reuse most packages. Changing a foundational library can require many downstream builds if substitutes are unavailable. Plan application-data backups and service-specific migrations alongside software changes.
 
 **Expected outcome:** You can distinguish evaluation failure, build/fetch failure, and activation/runtime failure.
 
@@ -126,16 +124,16 @@ Benefits include explicit dependencies and retained generations. Costs include d
 
 **Rationale:** Understanding dependency direction prevents mistaken cleanup decisions.
 
-**Explanation:** A program may still need a library even if you never selected that library explicitly.
+**Explanation:** A program may still need a library through its transitive runtime dependencies.
 
-**Example:** No command is needed. A selected editor references a runtime library in the store. Should you manually delete that library because it is absent from your package list?
+**Example:** A selected editor references a runtime library in the store. Should you manually delete that library because it is absent from your package list?
 
 **Expected outcome:** Success criterion: explain why package-list membership is not the same as store reachability.
 
 <details>
 <summary>Worked solution</summary>
 
-No. The selected editor’s closure needs the library. Let Nix manage store reachability and garbage collection; never manually delete store files to “uninstall” dependencies.
+Keep the library while the selected editor’s closure references it. Use Nix’s reachability and garbage-collection mechanisms to remove unused store objects safely.
 
 </details>
 
@@ -143,14 +141,14 @@ No. The selected editor’s closure needs the library. Let Nix manage store reac
 
 ### Values, lists, and attribute sets
 
-**Rationale:** Most configuration is structured data, not a sequence of imperative instructions.
+**Rationale:** Most configuration describes desired settings as structured data.
 
-**Explanation:** A **string** is text in double quotes; a **Boolean** is `true` or `false`; numbers are unquoted; `null` means absence where accepted. A **list** uses square brackets and whitespace, not commas. An **attribute set** maps names to values inside braces; assignments end with semicolons. A dot selects a nested attribute, and dotted assignments construct nested sets. This is language structure; only the module system gives paths such as `services.openssh.enable` their NixOS meaning. See [official language basics](https://nix.dev/tutorials/nix-language.html).
+**Explanation:** A **string** is text in double quotes; a **Boolean** is `true` or `false`; numbers are unquoted; `null` means absence where accepted. A **list** uses square brackets and whitespace-separated elements. An **attribute set** maps names to values inside braces; assignments end with semicolons. A dot selects a nested attribute, and dotted assignments construct nested sets. This is language structure; only the module system gives paths such as `services.openssh.enable` their NixOS meaning. See [official language basics](https://nix.dev/tutorials/nix-language.html).
 
-**Example:** No shell command is needed. This is a complete standalone Nix expression for reading, not a NixOS module:
+**Example:** Read this complete standalone Nix expression as sample data:
 
 ```nix
-# Represent sample data; these names are not NixOS options.
+# Represent standalone sample data with strings, lists, and nested attributes.
 {
     title = "Learning Nix";
     enabled = true;
@@ -169,9 +167,9 @@ No. The selected editor’s closure needs the library. Let Nix manage store reac
 
 **Rationale:** Naming a value lets you reuse it without copying configuration.
 
-**Explanation:** `let ... in ...` introduces local names, then returns the expression after `in`. It is not a loop or a sequence of mutations. `${expression}` inserts a string-compatible value into a string; use `toString` for a number. `'' ... ''` is an indented multiline string. `./file.nix` is a path relative to the Nix file containing it, not the caller’s shell directory; `"./file.nix"` is just text.
+**Explanation:** `let ... in ...` introduces local names, then returns the expression after `in`. These bindings describe reusable values. `${expression}` inserts a string-compatible value into a string; use `toString` for a number. `'' ... ''` is an indented multiline string. `./file.nix` is a path relative to the Nix file containing it, not the caller’s shell directory; `"./file.nix"` is just text.
 
-`++` joins lists. `//` combines ordinary attribute sets with right-hand replacement for matching top-level keys; it is **not** the NixOS option-merging algorithm. `==` compares values, `&&` means Boolean “and,” and `if condition then value else otherValue` chooses a value. `inherit name;` abbreviates `name = name;`; `inherit (set) name;` abbreviates `name = set.name;`. `with pkgs; [ hello git ]` opens names for that expression, but explicit `pkgs.hello` is clearer while learning.
+`++` joins lists. `//` combines ordinary attribute sets with right-hand replacement for matching top-level keys; it is **not** the NixOS option-merging algorithm. `==` compares values, `&&` means Boolean “and,” and `if condition then value else otherValue` chooses a value. `inherit name;` abbreviates `name = name;`; `inherit (set) name;` abbreviates `name = set.name;`. `[ pkgs.hello pkgs.git ]` makes each package’s origin explicit. For local names, `let inherit (pkgs) hello git; in [ hello git ]` binds exactly the attributes in use.
 
 **Example:** **READ-ONLY**, from any directory, using only local literal values:
 
@@ -179,7 +177,7 @@ No. The selected editor’s closure needs the library. Let Nix manage store reac
 nix --extra-experimental-features 'nix-command flakes' eval --expr 'let count = 2; tools = [ "hello" ]; in { message = "${toString count} tools"; selected = tools ++ [ "git" ]; }'
 ```
 
-**Expected outcome:** The result has `message = "2 tools"` and `selected = [ "hello" "git" ]`. Attribute order in printed output need not follow source order.
+**Expected outcome:** The result has `message = "2 tools"` and `selected = [ "hello" "git" ]`. Printed output may reorder attributes.
 
 ### Functions, imports, and laziness
 
@@ -189,9 +187,9 @@ nix --extra-experimental-features 'nix-command flakes' eval --expr 'let count = 
 
 `import ./file.nix` evaluates that file and returns its value. If the file returns a function, apply arguments separately, as in `(import ./function.nix) { name = "Learner"; }`. `builtins.import` is the underlying builtin; ordinary `import` is available by default. NixOS `imports` instead tells the module system which modules to collect and merge; it is not merely textual inclusion or identical to calling `import` yourself.
 
-Nix is **lazy**: values are computed when needed. It is **functional**: bindings describe values rather than repeatedly mutating variables. Laziness can delay errors and make traces indirect; it does not mean arbitrary evaluated code is harmless. See [language basics](https://nix.dev/tutorials/nix-language.html).
+Nix is **lazy**: values are computed when needed. It is **functional**: bindings describe values rather than repeatedly mutating variables. Laziness can delay errors and make traces indirect; evaluation can still fetch inputs, write caches, or trigger builds through import-from-derivation. See [language basics](https://nix.dev/tutorials/nix-language.html).
 
-**Example:** No command is needed. This complete expression returns `"Hello, Learner!"`:
+**Example:** This complete expression returns `"Hello, Learner!"`:
 
 ```nix
 # Apply a small function using a named argument and a default suffix.
@@ -201,7 +199,7 @@ in
     greet { name = "Learner"; }
 ```
 
-**Expected outcome:** You can read the argument set, colon, returned value, and function application without mistaking them for shell syntax.
+**Expected outcome:** You can read the argument set, colon, returned value, and function application as Nix syntax distinct from shell commands.
 
 ### Practice: repair a value
 
@@ -209,9 +207,9 @@ in
 
 **Explanation:** Strings and Booleans are distinct values; list elements are whitespace-separated.
 
-**Example:** No command is needed. Write a complete set with Boolean `enabled`, a list containing the strings `hello` and `git`, and a numeric `count` equal to their number.
+**Example:** Write a complete set with Boolean `enabled`, a list containing the strings `hello` and `git`, and a numeric `count` equal to their number.
 
-**Expected outcome:** Success criterion: three attributes, no commas between list elements, and no quotes around `true` or the number.
+**Expected outcome:** Success criterion: three attributes, whitespace-separated list elements, Boolean `true`, and numeric `2`.
 
 <details>
 <summary>Worked solution</summary>
@@ -231,13 +229,13 @@ in
 
 ### Preserve the machine you already have
 
-**Rationale:** A minimal internet example is not a replacement for a working machine’s boot, storage, users, or hardware configuration.
+**Rationale:** A working machine’s boot, storage, users, and hardware configuration provide the base for additional modules.
 
 **Explanation:** `/etc/nixos/configuration.nix` is typically a NixOS module importing `hardware-configuration.nix` and defining options. Your installation may use more files or another entrypoint. Read its actual imports before proceeding. **Keep existing hardware imports, file systems, boot settings, accounts, access methods, networking, and `system.stateVersion`.** Make an independently recoverable backup of configuration and important data using your existing backup method. Keep a known-good bootable generation and recovery access.
 
-`system.stateVersion` selects compatibility defaults for stateful behavior. It is not the NixOS release selector and should not be bumped to match an input branch. Change it only as part of a deliberate state migration. See [installation/configuration guidance](https://nixos.org/manual/nixos/stable/).
+`system.stateVersion` selects compatibility defaults for stateful behavior. The input branch selects the release independently. Keep the installed state version, changing it only as part of a deliberate state migration. See [installation/configuration guidance](https://nixos.org/manual/nixos/stable/).
 
-**Example:** **READ-ONLY**, from any directory; these read the two conventional files without changing them:
+**Example:** **READ-ONLY**, from any directory; inspect the two conventional files:
 
 ```bash
 less /etc/nixos/configuration.nix
@@ -250,38 +248,38 @@ If either is absent, follow the imports in your actual configuration rather than
 
 ### Options and the supplied module arguments
 
-**Rationale:** A NixOS option is a declared interface, not an arbitrary key that magically becomes an OS setting.
+**Rationale:** A NixOS option is a declared, typed interface for a system setting.
 
 **Explanation:** A module may be a set or a function returning module definitions. The module system supplies `pkgs` (the selected package set), `lib` (helper functions), and `config` (the merged configuration), among other arguments. An **option declaration** defines a name, type, documentation, and often a default. An **option definition** supplies a value. Unknown options and wrong types cause evaluation errors.
 
 A package installed through `environment.systemPackages` exposes executables system-wide; it does not necessarily register services, D-Bus integration, or other needed system behavior. Prefer the relevant NixOS service/program option when that integration is required. See [configuration syntax](https://nixos.org/manual/nixos/stable/#sec-configuration-syntax) and [package management](https://nixos.org/manual/nixos/stable/#sec-package-management).
 
-**Example:** **SOURCE EDIT**, using an authorized editor, create `/etc/nixos/modules/cli-tools.nix` with this complete content. Create the ordinary `modules/` directory if needed through your editing workflow. Do not replace `configuration.nix`.
+**Example:** **SOURCE EDIT**, using an authorized editor, create `/etc/nixos/modules/cli-tools.nix` with this complete content. Create the ordinary `modules/` directory if needed through your editing workflow. Preserve the existing `configuration.nix`.
 
 ```nix
-# Add small command-line tools without changing hardware or services.
+# Select additional command-line tools; preserve existing hardware and service settings.
 { pkgs, ... }:
 {
     environment.systemPackages = [ pkgs.hello pkgs.git ];
 }
 ```
 
-This file has no effect until included in the module graph; stage 6 will include it through the flake. Do not also add a second independent copy of these definitions elsewhere.
+Stage 6 includes this file through the flake’s module graph. Keep these definitions in this single owning module.
 
 **Expected outcome:** A separate, readable module exists in source, while the running system is unchanged.
 
-### Definitions merge; file order is not a universal override
+### Merge definitions by type and priority
 
 **Rationale:** “The last file wins” leads to surprising conflicts and accidentally removed packages.
 
-**Explanation:** The module system collects definitions and merges them according to option type and priority. Package lists generally concatenate. Conflicting scalar values at the same effective priority can fail rather than silently replace each other. `lib.mkDefault` makes a definition easier for an ordinary definition to replace; `lib.mkForce` deliberately overrides ordinary definitions. Force is not a general fix for every conflict. Ordering helpers such as `mkBefore` affect list order, not which priority wins.
+**Explanation:** The module system collects definitions and merges them according to option type and priority. Package lists generally concatenate. Conflicting scalar values at the same effective priority can fail rather than silently replace each other. `lib.mkDefault` makes a definition easier for an ordinary definition to replace; `lib.mkForce` deliberately overrides ordinary definitions. Use force only for an intentional priority override after understanding the competing definitions. Ordering helpers such as `mkBefore` affect list order, not which priority wins.
 
 Contrast this with ordinary language `//`: it performs set replacement, not module-aware typed merging. Module `imports` describes a graph, not an imperative series of files. See [the manual’s Modularity section](https://nixos.org/manual/nixos/stable/) and [setting priorities](https://nixos.org/manual/nixos/stable/#sec-option-definitions-setting-priorities).
 
-**Example:** No command is needed. This is a complete illustrative module, **not** a file to add to the tutorial spine:
+**Example:** Read this standalone illustrative module to understand default priority; keep the tutorial spine’s existing hostname definitions:
 
 ```nix
-# Offer a replaceable hostname default, not an enforced machine identity.
+# Offer a hostname default that ordinary machine definitions can replace.
 { lib, ... }:
 {
     networking.hostName = lib.mkDefault "workstation";
@@ -298,26 +296,26 @@ If another module defines `networking.hostName = "another-name";`, that ordinary
 
 **Explanation:** Shared software settings and machine hardware have different owners.
 
-**Example:** No command is needed. You find a short online module enabling an editor. Should it replace your current `configuration.nix`, including its hardware import and existing administrator?
+**Example:** You find a short online module enabling an editor. Should it replace your current `configuration.nix`, including its hardware import and existing administrator?
 
 **Expected outcome:** Success criterion: explain a composition method that preserves all installed-machine settings.
 
 <details>
 <summary>Worked solution</summary>
 
-Keep `configuration.nix` and its imports. Put the new package definition in a separate module and include both in the system composition. Do not copy another machine’s storage IDs, bootloader, user, or `stateVersion`.
+Keep `configuration.nix` and its imports. Put the new package definition in a separate module and include both in the system composition. Retain this machine’s own storage IDs, bootloader, users, and `stateVersion`.
 
 </details>
 
 ## 5. Choose package scope: temporary use, user profile, or system
 
-### Try a package without adding it to the OS
+### Run a package for a single use
 
 **Rationale:** A small package experiment is easier to undo than a system configuration change.
 
 **Explanation:** `nix run` builds/fetches an app or suitable package and runs it; `--` separates application arguments. Direct GitHub flake references work without adding an input to your own flake. These examples explicitly select a branch rather than relying on a machine-dependent `nixpkgs` registry alias. A branch reference is not an enduring pin.
 
-The retrieved manual labels its shell command page `nix env shell` while its description and usage examples document the familiar `nix shell` spelling. Here we use the documented `nix shell` form; consult your installed help if names differ. Do not confuse it with legacy `nix-shell`, which has different conventions. See [`nix run`](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-run.html) and [the shell reference](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-env-shell.html).
+The Nix 2.34 manual documents `nix shell` on the `nix env shell` reference page. Use the spelling supported by your installed version; the examples here use `nix shell`. Legacy `nix-shell` has a separate interface and conventions. See [`nix run`](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-run.html) and [the shell reference](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-env-shell.html).
 
 **Example:** **BUILD-ONLY plus application execution**, from any directory; trust the referenced source before running it:
 
@@ -326,17 +324,17 @@ nix --extra-experimental-features 'nix-command flakes' run github:NixOS/nixpkgs/
 nix --extra-experimental-features 'nix-command flakes' shell github:NixOS/nixpkgs/nixos-26.05#hello --command hello
 ```
 
-The first prints your greeting; the second prints Hello’s default greeting. Neither adds a package to the system package list. A shell provides tools on `PATH`; it does not isolate access to your files or network.
+The first prints your greeting; the second prints Hello’s default greeting. Both leave the system package list unchanged. A shell provides tools on `PATH`; programs retain normal user file and network access.
 
 **Expected outcome:** You can use a trusted tool once without changing the selected OS generation or persistent user profile.
 
 ### A user profile is its own history
 
-**Rationale:** Imperative package management is useful, but it should not be mistaken for the declarative OS specification.
+**Rationale:** User-profile selections and the declarative OS specification have separate owners and histories.
 
 **Explanation:** **Imperative** means asking for a change now, such as adding one package to your profile. **Declarative** means recording the desired package set in source and rebuilding from that description. Both can coexist, but overlapping selections can confuse which executable your shell finds first.
 
-Modern `nix profile` maintains the invoking user’s package selections and history. Do not use `sudo` here: it would target a different user. Its format is not interchangeable with legacy `nix-env` profiles; if you encounter a format error, inspect the existing workflow rather than mixing commands to force a conversion. Profile rollback is not NixOS rollback. See [profile add](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-add.html), [list](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-list.html), and [rollback](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-rollback.html).
+Modern `nix profile` maintains the invoking user’s package selections and history. Run these commands as your normal user so they target your profile; `sudo` would target a different user. Its format is not interchangeable with legacy `nix-env` profiles; if you encounter a format error, inspect the existing workflow rather than mixing commands to force a conversion. Profile rollback is not NixOS rollback. See [profile add](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-add.html), [list](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-list.html), and [rollback](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-rollback.html).
 
 **Example:** From any directory, the first and third commands are **READ-ONLY**; the others are **USER-PROFILE CHANGE**. Try the add only if you want Hello in your modern profile:
 
@@ -366,7 +364,7 @@ nix --extra-experimental-features 'nix-command flakes' profile upgrade PROFILE_N
 
 For the declarative module from stage 4, remove `pkgs.hello` from its list if you no longer want it system-wide; stage 7 teaches the rebuild. A package may still be visible through another profile or environment.
 
-**Expected outcome:** You know which source of package exposure to change and do not manually delete store files.
+**Expected outcome:** You know which source of package exposure to change and use Nix-managed cleanup for unused store files.
 
 ### Practice: explain a stubborn executable
 
@@ -374,14 +372,14 @@ For the declarative module from stage 4, remove `pkgs.hello` from its list if yo
 
 **Explanation:** A command can appear on `PATH` through your system, user profile, or current development shell.
 
-**Example:** No command is needed. You remove Hello from your user profile, but it remains available after activating `cli-tools.nix`. Is removal necessarily broken?
+**Example:** You remove Hello from your user profile, but it remains available after activating `cli-tools.nix`. Is removal necessarily broken?
 
 **Expected outcome:** Success criterion: identify another valid owner and the appropriate declarative change.
 
 <details>
 <summary>Worked solution</summary>
 
-No. `environment.systemPackages` also selects Hello. Remove it from `modules/cli-tools.nix`, rebuild and activate deliberately, then test in a fresh shell. A temporary shell can introduce yet another copy.
+`environment.systemPackages` also selects Hello. Remove it from `modules/cli-tools.nix`, rebuild and activate deliberately, then test in a fresh shell. A temporary shell can introduce yet another copy.
 
 </details>
 
@@ -395,9 +393,9 @@ No. `environment.systemPackages` also selects Hello. Remove it from `modules/cli
 
 Common output families include `packages.<system>.<name>`, `apps.<system>.<name>`, `devShells.<system>.<name>`, complete `nixosConfigurations.<name>`, and reusable `nixosModules.<name>`. The architecture/OS pair, such as `x86_64-linux` or `aarch64-linux`, matters for packages and systems. A NixOS configuration attribute is a label chosen by the author, not an architecture.
 
-Pins improve repeatability but do not back up user data, capture all runtime state, guarantee source availability forever, or prove every build is byte-identical. Flakes remain experimental in the reference implementation. Non-flake NixOS workflows remain legitimate. The [NixOS 26.05 release highlights](https://nixos.org/manual/nixos/stable/release-notes.html#sec-release-26.05-highlights) document `system.nix` as an alternative entrypoint to `configuration.nix` and `flake.nix`. This tutorial follows one flake workflow rather than mixing entrypoints. See the [flake reference](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake.html).
+Pins record resolved dependency choices for repeatable evaluation. Back up user data, document runtime requirements, preserve source archives for long-term availability, and verify byte-for-byte build reproducibility independently. Flakes remain experimental in the reference implementation. Non-flake NixOS workflows remain legitimate. The [NixOS 26.05 release highlights](https://nixos.org/manual/nixos/stable/release-notes.html#sec-release-26.05-highlights) document `system.nix` as an alternative entrypoint to `configuration.nix` and `flake.nix`. The following stages develop a single flake workflow. See the [flake reference](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake.html).
 
-**Example:** No command is needed. Think of `flake.nix` as “use this branch and expose this system,” and the lock as “use this exact resolved input tree.” Changing either does not activate the machine.
+**Example:** Think of `flake.nix` as “use this branch and expose this system,” and the lock as “use this exact resolved input tree.” Changing either does not activate the machine.
 
 **Expected outcome:** You can explain why source, pins, and running system need separate inspection.
 
@@ -405,9 +403,9 @@ Pins improve repeatability but do not back up user data, capture all runtime sta
 
 **Rationale:** A thin wrapper preserves the installed configuration and avoids silently assuming your CPU or hostname.
 
-**Explanation:** Use `/etc/nixos` as the source root for this tutorial. The examples consistently use explicit `path:/etc/nixos` references, so their local-source behavior does not depend on whether this directory is in Git. **Before doing so, ensure the tree contains only configuration source safe for other local users to read.** A path source can include untracked/private files that Git-backed filtering would omit; source snapshots go into the normally world-readable store. Never put passwords, private keys, tokens, or sensitive backups there. Store paths and package absence from another user’s `PATH` are not confidentiality boundaries.
+**Explanation:** Use `/etc/nixos` as the source root for this tutorial. The examples consistently use explicit `path:/etc/nixos` references, so their local-source behavior does not depend on whether this directory is in Git. **Before doing so, ensure the tree contains only configuration source safe for other local users to read.** A path source can include untracked/private files that Git-backed filtering would omit; source snapshots go into the normally world-readable store. Keep passwords, private keys, tokens, and sensitive backups outside the source tree and store. Store contents are normally readable by other local users, who can access package paths independently of their `PATH` selections.
 
-The following tree is the intended source layout, not a command or a replacement for existing additional files:
+Extend the installed source layout with the following files, preserving existing additional files:
 
 **Example:** **SOURCE EDIT** for the new files only:
 
@@ -438,7 +436,7 @@ nix --extra-experimental-features 'nix-command flakes' eval --impure --raw --exp
 
 **Explanation:** `nixpkgs.lib.nixosSystem` composes modules into a complete NixOS configuration. Here `workstation` is only the output attribute selected after `#`; it does **not** set `networking.hostName`. Keep your actual hostname unchanged. The modules list includes your existing `configuration.nix`, which retains its own hardware imports, and two small additional modules.
 
-If your installed release is not 26.05, **do not proceed with this branch unchanged**. Either use the branch matching the release you intend to maintain, after checking its documentation and option names, or plan a release upgrade separately in stage 9. The architecture placeholder is likewise mandatory.
+If your installed release is not 26.05, **select the matching branch before proceeding**. Either use the branch matching the release you intend to maintain, after checking its documentation and option names, or plan a release upgrade separately in stage 9. The architecture placeholder is likewise mandatory.
 
 **Example:** **SOURCE EDIT**, create `/etc/nixos/modules/nix-cli.nix`:
 
@@ -476,7 +474,7 @@ Create `/etc/nixos/flake.nix` with this complete content, replacing the platform
 }
 ```
 
-`self` denotes this flake; it need not be used just because it is accepted as an argument. `lib` here comes from the selected Nixpkgs input, not a separately required utility flake. No third-party framework is needed.
+`self` denotes this flake and is available for references to its own outputs. `lib` comes from the selected Nixpkgs input, which supplies the composition interface used here.
 
 **Expected outcome:** A single explicit system composition exists while installed hardware, users, boot configuration, hostname, and state compatibility settings remain owned by the existing module.
 
@@ -484,9 +482,9 @@ Create `/etc/nixos/flake.nix` with this complete content, replacing the platform
 
 **Rationale:** Establish pins deliberately, then inspect the exact output you intend to build.
 
-**Explanation:** `nix flake lock` creates missing entries and preserves still-valid existing pins rather than blindly refreshing them. Changing a requested input URL may require its corresponding lock entry to change. Preserve a known-good source/lock pair before edits. Nix-generated JSON is not a file to fill with invented hashes.
+**Explanation:** `nix flake lock` creates missing entries and preserves still-valid existing pins rather than blindly refreshing them. Changing a requested input URL may require its corresponding lock entry to change. Preserve a known-good source/lock pair before edits. Let Nix generate the lock JSON with resolved revisions and hashes.
 
-If you later choose implicit local Git-backed references instead of this tutorial’s explicit `path:` form, new files must be added to Git’s index to enter the flake snapshot. Dirty changes to already tracked files are normally included with a warning. A commit is not required just to test tracked changes. We do not perform or require Git operations here. Imports must stay within the source tree captured by the flake; an absolute import of a private outside file is not a portable pure-flake design. See [local flake sources](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake.html) and [locking](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-lock.html).
+If you later choose implicit local Git-backed references instead of this tutorial’s explicit `path:` form, new files must be added to Git’s index to enter the flake snapshot. Dirty changes to already tracked files are normally included with a warning. Tracked working-tree edits can be tested before committing. Keep imports within the source tree captured by the flake for portable pure evaluation, and keep private material outside that tree. See [local flake sources](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake.html) and [locking](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-lock.html).
 
 **Example:** First, **SOURCE EDIT plus input fetching**, using authorized write access to `/etc/nixos`:
 
@@ -500,9 +498,9 @@ Then **READ-ONLY with evaluation/fetch/cache caveats**, from any directory:
 nix --extra-experimental-features 'nix-command flakes' eval --no-update-lock-file --raw path:/etc/nixos#nixosConfigurations.workstation.config.networking.hostName
 ```
 
-The lock command must be run by an account allowed to write that source; do not casually change its ownership or permissions. Use your existing administrative workflow if needed. `--no-update-lock-file` makes inspection fail if lock changes would be needed instead of silently accepting new pins.
+Run the lock command through an account authorized to write that source, preserving its ownership and permissions. Use your existing administrative workflow if needed. `--no-update-lock-file` makes inspection fail if lock changes would be needed instead of silently accepting new pins.
 
-**Expected outcome:** `flake.lock` contains real resolved inputs, and evaluation prints your preserved hostname—not necessarily `workstation`. No system has been activated.
+**Expected outcome:** `flake.lock` contains resolved inputs, evaluation prints your preserved actual hostname, and the running system retains its existing activation.
 
 ### Practice: output name versus hostname
 
@@ -510,20 +508,20 @@ The lock command must be run by an account allowed to write that source; do not 
 
 **Explanation:** `nixosConfigurations.workstation` identifies an output, while `networking.hostName` configures an OS property.
 
-**Example:** No command is needed. Your real machine reports a different hostname. Must you rename it before selecting `path:/etc/nixos#workstation`?
+**Example:** Your real machine reports a different hostname. Must you rename it before selecting `path:/etc/nixos#workstation`?
 
 **Expected outcome:** Success criterion: explain why that selector is still valid.
 
 <details>
 <summary>Worked solution</summary>
 
-No. The explicit selector chooses the `workstation` configuration attribute. Its composed modules retain the machine’s actual hostname. Automatic hostname matching is unnecessary when the attribute is supplied explicitly.
+The explicit selector chooses the `workstation` configuration attribute directly. Its composed modules retain the machine’s actual hostname.
 
 </details>
 
 ## 7. Build, test, and activate deliberately
 
-### Build without selecting a new system
+### Build the system artifacts
 
 **Rationale:** Find evaluation and build failures before changing services.
 
@@ -535,7 +533,7 @@ No. The explicit selector chooses the `workstation` configuration attribute. Its
 nix --extra-experimental-features 'nix-command flakes' build --no-link --print-out-paths --no-update-lock-file path:/etc/nixos#nixosConfigurations.workstation.config.system.build.toplevel
 ```
 
-Do not run as root merely to build. It can download substantial data or execute package builders and consume disk/CPU. Read errors before proceeding.
+Build as your normal user. It can download substantial data or execute package builders and consume disk/CPU. Read errors before proceeding.
 
 **Expected outcome:** Nix prints a realized `/nix/store/…-nixos-system-…` path, without selecting it as the running or default boot system and without leaving a local result link.
 
@@ -548,13 +546,13 @@ Do not run as root merely to build. It can download substantial data or execute 
 | Mode | Running system | Default for future boot |
 | --- | --- | --- |
 | `build` | Unchanged; prepare output only | Unchanged |
-| `test` | **Activates** the candidate now | Not changed to the candidate |
-| `boot` | Does not activate candidate services now | Sets candidate as default |
+| `test` | **Activates** the candidate now | Retains existing default |
+| `boot` | Retains current services | Sets candidate as default |
 | `switch` | **Activates** now | Sets candidate as default |
 
-Our build uses the direct `nix build --no-link` form above rather than `nixos-rebuild build`, which commonly leaves a result link. Administrative activation uses `nixos-rebuild` with the same explicit flake selector. `test` is not a dry run: services may restart, connections may drop, and stateful services may write or migrate data. Rebooting to the previous default does not reverse those persistent effects. Activation failure is not guaranteed automatic rollback; partial activation is possible.
+Our build uses the direct `nix build --no-link` form above rather than `nixos-rebuild build`, which commonly leaves a result link. Administrative activation uses `nixos-rebuild` with the same explicit flake selector. `test` activates candidate services while retaining the existing boot default: services may restart, connections may drop, and stateful services may write or migrate data. Those persistent effects survive a reboot to the previous default and require their own recovery procedures. Activation can fail partway through, so inspect services and use your recovery plan if needed.
 
-**Example:** **SYSTEM CHANGE**, from any directory, alternatives—not a block to run indiscriminately. Have local console/recovery access and backups first. These retain a per-invocation feature flag until the feature module has actually been activated:
+**Example:** **SYSTEM CHANGE**, from any directory; choose the one mode that matches your intended effect. Have local console/recovery access and backups first. These retain a per-invocation feature flag until the feature module has actually been activated:
 
 ```bash
 sudo nixos-rebuild test --flake path:/etc/nixos#workstation --option extra-experimental-features 'nix-command flakes'
@@ -564,7 +562,7 @@ sudo nixos-rebuild switch --flake path:/etc/nixos#workstation --option extra-exp
 
 Use only the mode you intend, and review your installed `nixos-rebuild --help` if its flags differ. Administrative alternatives are explained in stage 1. Preserve the source/lock pair between build and activation so you activate what you reviewed.
 
-**Expected outcome:** You can predict both immediate and next-boot effects, and do not describe `test` as harmless inspection.
+**Expected outcome:** You can predict both immediate and next-boot effects, including service restarts and possible persistent data changes from `test`.
 
 ### Verify the result instead of trusting the exit code alone
 
@@ -572,7 +570,7 @@ Use only the mode you intend, and review your installed `nixos-rebuild --help` i
 
 **Explanation:** Check the changed feature, existing access methods, and relevant logs. Kernel/boot-sensitive changes may require a reboot; a running userspace transition is not identical to a fresh boot. User services also have lifecycle details that a system rebuild does not universally restart for you. The [manual’s warnings](https://nixos.org/manual/nixos/stable/#sec-changing-config) explain this limitation.
 
-After activating `nix-cli.nix`, later modern CLI examples omit the temporary feature flag. If you have not activated it, keep using the same `--extra-experimental-features 'nix-command flakes'` prefix for `nix` commands. Do not assume editing that module changed CLI settings.
+After activating `nix-cli.nix`, later modern CLI examples omit the temporary feature flag. If you have not activated it, keep using the same `--extra-experimental-features 'nix-command flakes'` prefix for `nix` commands. CLI settings take effect after that module’s activation.
 
 **Example:** **READ-ONLY**, from any directory, after a successful activation of `cli-tools.nix`:
 
@@ -589,11 +587,11 @@ Here `hello --version` executes the selected trusted program solely to inspect i
 
 ### Practice: choose a mode
 
-**Rationale:** Mode choice should follow a goal, not a memorized habit.
+**Rationale:** Match the activation mode to the intended running-system and next-boot effects.
 
 **Explanation:** Preparing artifacts and changing a running service are separate commitments.
 
-**Example:** No command is needed. You want to discover whether a package builds without changing services. Later, you want the candidate selected for the next boot but not activated now. Which two operations fit?
+**Example:** You want to discover whether a package builds without changing services. Later, you want the candidate selected for the next boot but not activated now. Which two operations fit?
 
 **Expected outcome:** Success criterion: select build-only first and distinguish `boot` from `test`.
 
@@ -606,13 +604,13 @@ First use the direct top-level `nix build --no-link` command. Later use `nixos-r
 
 ## 8. Add users, networking, services, and an optional desktop
 
-### Understand accounts without replacing your administrator
+### Add an account while preserving administrator access
 
 **Rationale:** Account examples can lock you out if copied over an installed account setup.
 
-**Explanation:** Keep your existing administrator and authentication method. An additional normal account is optional, not needed to learn modules. Do not set `users.mutableUsers = false` as a tutorial shortcut; it changes account ownership semantics. With ordinary mutable user management, a newly declared user has no password by default. Set one interactively after activation if password login is intended. Never embed a plaintext password or private key in a Nix string; source and generated artifacts can enter the store. See [user management](https://nixos.org/manual/nixos/stable/#sec-user-management).
+**Explanation:** Keep your existing administrator and authentication method. Use the optional additional account example when a separate practice login is useful. Preserve your existing `users.mutableUsers` policy; setting it to `false` changes account ownership semantics. With ordinary mutable user management, a newly declared user has no password by default. Set one interactively after activation if password login is intended. Keep plaintext passwords and private keys outside Nix source and generated artifacts, which can enter the store. See [user management](https://nixos.org/manual/nixos/stable/#sec-user-management).
 
-**Example:** **SOURCE EDIT**, optional complete `/etc/nixos/modules/practice-user.nix`. `learner` is a fictional new account; choose a non-conflicting name and replace it consistently. Do not copy this into an existing user definition or grant administrative groups just to follow the tutorial:
+**Example:** **SOURCE EDIT**, optional complete `/etc/nixos/modules/practice-user.nix`. `learner` is a fictional new account; choose a non-conflicting name and replace it consistently. Keep existing user definitions intact and retain ordinary, non-administrative groups for this practice account:
 
 ```nix
 # Declare an optional non-administrative account; credentials stay out of source.
@@ -631,15 +629,15 @@ To include any optional module in this stage, add its `./modules/NAME.nix` path 
 sudo passwd learner
 ```
 
-Enter the password at the prompt, never in configuration source. If you already use immutable account management, consult its password-file options and your established secret-management process instead of assuming this procedure applies.
+Enter the password interactively at the prompt and keep it outside configuration source. If you already use immutable account management, consult its password-file options and your established secret-management process instead of assuming this procedure applies.
 
 **Expected outcome:** You understand how a module declares an account without replacing the working administrator or exposing credentials.
 
 ### Keep networking changes separate from service experiments
 
-**Rationale:** Networking is not a safe place for a blind “reasonable default,” especially over SSH.
+**Rationale:** Networking changes need a machine-specific plan and recovery access, especially over SSH.
 
-**Explanation:** Retain the installed networking backend, interface configuration, Wi-Fi credentials, firewall, and hostname. Do not enable NetworkManager on top of another backend merely because a tutorial mentions it. `networking.hostName` is a NixOS option, not the flake configuration selector. Replacing a hostname can affect applications and remote access, so it remains an explicit machine decision.
+**Explanation:** Retain the installed networking backend, interface configuration, Wi-Fi credentials, firewall, and hostname. Keep one deliberately selected networking backend, coordinating any migration with your existing configuration. `networking.hostName` is a NixOS option, not the flake configuration selector. Replacing a hostname can affect applications and remote access, so it remains an explicit machine decision.
 
 A service’s package and its operating-system integration are different. Enabling OpenSSH starts an SSH server after activation; firewall exposure and authentication must be reviewed independently. `openFirewall = false` prevents this module from automatically adding an allow rule; it does **not** prove the service is unreachable if another rule already allows it. See [NixOS configuration and networking](https://nixos.org/manual/nixos/stable/).
 
@@ -656,7 +654,7 @@ A service’s package and its operating-system integration are different. Enabli
 }
 ```
 
-Include it using the existing modules list only if wanted. If this machine already has SSH settings, reconcile them rather than override them blindly. Do not disable password login or change keys until an alternate verified login works. A remote-only reader should postpone account/network/SSH changes until recovery access is available.
+Include it using the existing modules list only if wanted. If this machine already has SSH settings, reconcile them rather than override them blindly. Verify an alternate working login before changing password access or keys. A remote-only reader should postpone account/network/SSH changes until recovery access is available.
 
 **Expected outcome:** You can explain the intended service change and its remaining network/access risks before activation.
 
@@ -666,7 +664,7 @@ Include it using the existing modules list only if wanted. If this machine alrea
 
 **Explanation:** After an authorized SSH activation, inspect its service and recent logs. Log access can require additional privileges; request only those you are authorized to use. Keep logs private when asking for help: they can contain hostnames, addresses, and other sensitive details.
 
-For a graphical machine that needs GNOME, the retrieved stable manual uses `services.desktopManager.gnome.enable` and `services.displayManager.gdm.enable`. Do not substitute older `services.xserver.desktopManager` keys from unrelated tutorials. Do not add another display manager over the existing one without a deliberate migration, and do not assume GPU or display-driver settings. See [GNOME configuration](https://nixos.org/manual/nixos/stable/#sec-gnome-enable).
+For a graphical machine that needs GNOME, the NixOS 26.05 manual uses `services.desktopManager.gnome.enable` and `services.displayManager.gdm.enable`. Use the option names for your selected release. Preserve the existing display manager until a deliberate migration, and retain machine-specific GPU and display-driver settings. See [GNOME configuration](https://nixos.org/manual/nixos/stable/#sec-gnome-enable).
 
 **Example:** **READ-ONLY**, from any directory, after enabling SSH:
 
@@ -686,17 +684,17 @@ Optional **SOURCE EDIT**, complete `/etc/nixos/modules/desktop.nix`, only after 
 }
 ```
 
-Include, build, and activate separately from networking/account experiments. Desktop changes can download many packages and disrupt a graphical session; arrange a recovery console first. A headless system needs no desktop module.
+Include, build, and activate separately from networking/account experiments. Desktop changes can download many packages and disrupt a graphical session; arrange a recovery console first. For a headless system, retain the existing console/server configuration.
 
 **Expected outcome:** You can inspect a service independently and understand that optional desktops are integrated module choices, not just a package in a list.
 
 ### Practice: reason about SSH exposure
 
-**Rationale:** An option name should not be overinterpreted as a complete security guarantee.
+**Rationale:** Each security-related option controls a specific part of the access policy.
 
 **Explanation:** Reachability depends on service binding, local firewall rules, upstream networking, and authentication policy.
 
-**Example:** No command is needed. Does `services.openssh.openFirewall = false;` guarantee that no remote host can reach SSH?
+**Example:** Does `services.openssh.openFirewall = false;` guarantee that no remote host can reach SSH?
 
 **Expected outcome:** Success criterion: explain both what the option prevents and what it does not establish.
 
@@ -709,13 +707,13 @@ It prevents the SSH module from automatically opening the firewall. It does not 
 
 ## 9. Update inputs, pin revisions, and plan release upgrades
 
-### Refresh pins without confusing them with activation
+### Refresh pins as a separate maintenance step
 
-**Rationale:** Input updates should be reviewable changes, not hidden side effects of a rebuild.
+**Rationale:** Review input updates as explicit source changes before rebuilding.
 
 **Explanation:** Modern `nix flake update` takes **input names** as positional arguments. It operates in the current flake directory unless `--flake` selects another. It changes `flake.lock`, not the requested branch in `flake.nix`, and does not activate a system. With no input names it refreshes all inputs. `nix flake lock` instead fills missing or changed-request entries without intentionally refreshing every existing pin. See [update](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-update.html) and [lock](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-lock.html).
 
-Updating the root user’s Nix channel does not update a flake lock. Profile upgrades likewise do not update your OS flake’s lock. Keep these workflows distinct.
+Channels, user profiles, and the OS flake lock have separate update workflows. Use `nix flake update` to refresh the OS flake’s pins.
 
 **Example:** **SOURCE EDIT plus input fetching**, from any directory, using authorized source write access; alternatives:
 
@@ -724,7 +722,7 @@ nix flake update nixpkgs --flake path:/etc/nixos
 nix flake update --flake path:/etc/nixos
 ```
 
-The first targets `nixpkgs`; the second refreshes all inputs, currently the same single input in the minimal spine. Do not write `nix flake update path:/etc/nixos`: that positional value would be treated as an input name.
+The first targets `nixpkgs`; the second refreshes all inputs, currently the same single input in the minimal spine. Use `--flake path:/etc/nixos` for the location; positional values name inputs.
 
 **Expected outcome:** Only intended pins change. You review the old and new resolved revisions, then build before choosing any activation.
 
@@ -734,9 +732,9 @@ The first targets `nixpkgs`; the second refreshes all inputs, currently the same
 
 **Explanation:** The lock already pins a resolved revision even when `flake.nix` names a branch. Preserve both files as a compatible pair when recording known-good source. To restore behavior, restore the relevant source edits **and** lock data from your own known-good backup/history; reverting only the lock does not undo a newly enabled service.
 
-For an explicit long-lived source pin, replace the input URL with `github:NixOS/nixpkgs/COMMIT`, where `COMMIT` is a real full revision you obtained from your known-good lock or the upstream repository and verified. This is a replacement instruction, not a fabricated working hash. Resolve the changed input with `flake lock`, inspect, and build again. A pin can also withhold security fixes, so give it a review date/process. See [flake references and lock files](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake.html).
+For an explicit long-lived source pin, replace the input URL with `github:NixOS/nixpkgs/COMMIT`, where `COMMIT` is a real full revision you obtained from your known-good lock or the upstream repository and verified. Resolve the changed input with `flake lock`, inspect, and build again. A pin can also withhold security fixes, so give it a review date/process. See [flake references and lock files](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake.html).
 
-**Example:** No command is needed for the decision. Compare two policies: “track `nixos-26.05` but accept new lock revisions only after review” versus “hold one known-good commit while investigating a regression.” Neither requires changing `system.stateVersion`.
+**Example:** Compare two policies: “track `nixos-26.05` but accept new lock revisions only after review” versus “hold one known-good commit while investigating a regression.” Both policies retain the installed `system.stateVersion`.
 
 After a deliberate source edit, **SOURCE EDIT plus fetching**, from any directory:
 
@@ -750,11 +748,11 @@ nix flake lock path:/etc/nixos
 
 **Rationale:** Moving between release branches can change options, packages, and service data formats.
 
-**Explanation:** Read the release notes for your actual current and target releases and relevant service upgrade instructions. Confirm backups, free space, a known-good boot generation, and recovery access. Then deliberately edit the `inputs.nixpkgs.url` branch, refresh the intended lock entry, inspect warnings, build, and schedule activation/reboot. Do not upgrade a remote-only machine without a way back.
+**Explanation:** Read the release notes for your actual current and target releases and relevant service upgrade instructions. Confirm backups, free space, a known-good boot generation, and recovery access. Then deliberately edit the `inputs.nixpkgs.url` branch, refresh the intended lock entry, inspect warnings, build, and schedule activation/reboot. Arrange verified recovery access before upgrading a remote-only machine.
 
 **Keep `system.stateVersion` at its installed value** unless you separately plan a documented state migration. This protects compatibility defaults; it does not freeze package versions. A stable branch receives maintenance changes, while unstable may involve broader change; neither eliminates bugs. The [NixOS upgrade manual](https://nixos.org/manual/nixos/stable/#sec-upgrading) and [release notes](https://nixos.org/manual/nixos/stable/release-notes.html) are authoritative starting points.
 
-**Example:** No command is needed. On a machine running another release, adapting this tutorial to its maintained branch is not the same decision as upgrading it to 26.05. First decide which result you actually want; only then edit the branch.
+**Example:** On a machine running another release, adapting this tutorial to its maintained branch is not the same decision as upgrading it to 26.05. First decide which result you actually want; only then edit the branch.
 
 **Expected outcome:** You have an explicit release transition plan rather than an accidental upgrade hidden inside a tutorial copy-paste.
 
@@ -764,7 +762,7 @@ nix flake lock path:/etc/nixos
 
 **Explanation:** The requested input source and its resolved pin live in different files.
 
-**Example:** No command is needed. You run `nix flake update nixpkgs --flake path:/etc/nixos` while `flake.nix` still names the same branch. Which source file changes, and is the new OS running?
+**Example:** You run `nix flake update nixpkgs --flake path:/etc/nixos` while `flake.nix` still names the same branch. Which source file changes, and is the new OS running?
 
 **Expected outcome:** Success criterion: name the lock and the missing build/activation steps.
 
@@ -783,9 +781,7 @@ The command updates the resolved input in `flake.lock`; it does not rewrite the 
 
 **Explanation:** NixOS retains system generations, often selectable from the bootloader. A modern user profile retains its own versions separately. Retained store results allow returning to an earlier selected environment without rebuilding everything. This is not a snapshot of every disk or process.
 
-OS rollback does **not** restore `configuration.nix`, `flake.lock`, documents, service databases, passwords, or arbitrary mutable state. A service migration may not support running the older service against the newer database. Keep independent data backups. Package environment pointer changes can be atomic, but system activation, service restarts, and data migrations are not one universal database transaction. The [profile explanation](https://nix.dev/manual/nix/stable/package-management/profiles.html) describes the narrower atomic-selection mechanism.
-
-[Video insight, approximately 00:42:00–00:56:00](https://www.youtube.com/watch?v=zdZvKWpNzU8&t=2520s): the rollback and atomic-package discussion motivates this distinction; do not generalize it into an all-state recovery promise.
+OS rollback selects earlier software and generated system configuration. Restore `configuration.nix` and `flake.lock` separately from known-good source history; restore documents, service databases, passwords, and other mutable state through independent backups and recovery procedures. An older service may be incompatible with a migrated database. Atomic package-environment pointer selection has a narrower scope than system activation, service restarts, and data migrations, each of which can have partial or persistent effects. The [profile explanation](https://nix.dev/manual/nix/stable/package-management/profiles.html) describes the narrower atomic-selection mechanism.
 
 **Example:** **READ-ONLY**, from any directory on the documented NixOS interface:
 
@@ -793,7 +789,7 @@ OS rollback does **not** restore `configuration.nix`, `flake.lock`, documents, s
 nixos-rebuild list-generations
 ```
 
-Record which retained generation was actually tested as known-good. Generation numbers are machine-specific; never copy a number from this tutorial.
+Record which retained generation was actually tested as known-good. Select generation numbers from your machine’s own inspected history.
 
 **Expected outcome:** You know which system fallback exists and which separate backups would be needed for mutable state.
 
@@ -801,7 +797,7 @@ Record which retained generation was actually tested as known-good. Generation n
 
 **Rationale:** Recovery must work even when the new configuration cannot evaluate.
 
-**Explanation:** If the system remains usable and the previous generation is appropriate, a rollback command can select it. If boot is broken, use the bootloader’s retained older generation. The menu and keys depend on the actual bootloader; no GRUB/systemd-boot assumption is made here. If no retained generation boots, use suitable recovery media and the official recovery/install documentation for your real storage layout—do not invent disk IDs or run generic formatting instructions.
+**Explanation:** If the system remains usable and the previous generation is appropriate, a rollback command can select it. If boot is broken, use the bootloader’s retained older generation. Use the menu and keys documented for your installed bootloader. If no retained generation boots, use suitable recovery media and the official recovery/install documentation for your verified storage layout, preserving existing data and using actual disk identifiers.
 
 After recovering runtime functionality, repair or restore the **source and lock** before the next ordinary rebuild; otherwise you can recreate the failure. Preserve useful errors and logs. If activation was partial, check services explicitly rather than assuming a failed command left everything unchanged. See [rebuild recovery guidance](https://wiki.nixos.org/wiki/Nixos-rebuild), with the primary [NixOS manual](https://nixos.org/manual/nixos/stable/) taking precedence over dated wiki examples.
 
@@ -817,11 +813,11 @@ For a user-profile mistake instead, inspect `nix profile history` and use `nix p
 
 ### Garbage collection trades history for space
 
-**Rationale:** Store cleanup is not a routine prerequisite for every rebuild, and can remove the recovery targets you need.
+**Rationale:** Store cleanup trades retained artifacts for disk space and can remove needed recovery targets.
 
 **Explanation:** A **garbage-collection root** keeps a store object and its references reachable. Current and retained profile generations can be roots. Removing a package selection may leave the package retained by an older generation or another dependency. GC removes unreachable store paths. Deleting generations first can make more paths unreachable and eliminate rollback choices. `--no-link` builds avoid a local result link but may consequently lack a persistent root.
 
-Inspect before cleanup, keep known-good recovery choices, and avoid aggressive automatic deletion while learning. `nix-collect-garbage -d` combines broad old-profile deletion with collection; it is **not** a harmless “clear download cache” command. We intentionally do not make it a practice step. See [GC concepts](https://nix.dev/manual/nix/stable/package-management/garbage-collection.html), [`nix store gc`](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-store-gc.html), and [`nix-collect-garbage`](https://nix.dev/manual/nix/stable/command-ref/nix-collect-garbage.html).
+Inspect before cleanup, keep known-good recovery choices, and avoid aggressive automatic deletion while learning. `nix-collect-garbage -d` combines broad old-profile deletion with collection and can eliminate rollback targets. Reserve it for a deliberate history-retention decision. See [GC concepts](https://nix.dev/manual/nix/stable/package-management/garbage-collection.html), [`nix store gc`](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-store-gc.html), and [`nix-collect-garbage`](https://nix.dev/manual/nix/stable/command-ref/nix-collect-garbage.html).
 
 **Example:** **READ-ONLY inspection**, from any directory:
 
@@ -835,7 +831,7 @@ Only after reviewing reachability, retained generations, and your recovery needs
 nix store gc
 ```
 
-Use the permissions permitted by your Nix installation; do not escalate merely to make a cleanup command succeed. This command collects unreachable paths; it does not itself request deletion of all retained old generations.
+Use only the cleanup privileges authorized by your Nix installation. This command collects unreachable paths while retained old generations continue to provide roots.
 
 **Expected outcome:** You can predict why space may remain occupied and avoid sacrificing rollback history unintentionally.
 
@@ -845,14 +841,14 @@ Use the permissions permitted by your Nix installation; do not escalate merely t
 
 **Explanation:** A lock file, bootable generation, and database backup serve different purposes.
 
-**Example:** No command is needed. A service upgrade migrated its database and the old service cannot read it. Is booting an older NixOS generation sufficient evidence that the service’s data will recover?
+**Example:** A service upgrade migrated its database and the old service cannot read it. Is booting an older NixOS generation sufficient evidence that the service’s data will recover?
 
 **Expected outcome:** Success criterion: identify the missing recovery requirement.
 
 <details>
 <summary>Worked solution</summary>
 
-No. The old generation restores selected software/configuration artifacts, not the database. You need the service’s documented migration/recovery procedure and a suitable data backup. Restore source/lock separately to prevent accidentally reapplying the upgrade.
+The old generation restores selected software and generated configuration. Recover the database through the service’s documented migration/recovery procedure and a suitable data backup. Restore source and lock data separately so the next rebuild uses the intended inputs.
 
 </details>
 
@@ -862,12 +858,12 @@ No. The old generation restores selected software/configuration artifacts, not t
 
 **Rationale:** Project tools can be declared together without adding every tool to the whole OS.
 
-**Explanation:** `pkgs.mkShell` describes a development environment; `packages` supplies executable tools. `nix develop` enters the selected shell environment. It is not a container, VM, or restricted execution environment. A `shellHook` runs shell code on entry and can write files or run arbitrary commands; the example deliberately needs no hook. Pinning tool inputs does not automatically pin a language package manager’s dependencies or your source checkout. See [the Nixpkgs manual’s `pkgs.mkShell` section](https://nixos.org/manual/nixpkgs/stable/) and [`nix develop`](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-develop.html).
+**Explanation:** `pkgs.mkShell` describes a development environment; `packages` supplies executable tools. `nix develop` enters the selected shell environment. Shell programs use your normal user permissions and file/network access. A `shellHook` runs shell code on entry with those same permissions and can write files or run arbitrary commands. Pin language package-manager dependencies and your source checkout separately from tool inputs. See [the Nixpkgs manual’s `pkgs.mkShell` section](https://nixos.org/manual/nixpkgs/stable/) and [`nix develop`](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-develop.html).
 
-**Example:** **SOURCE EDIT**, extend `/etc/nixos/flake.nix` to this complete version. Preserve your verified `system` string, chosen branch/pin, and any optional module entries you intentionally added in stage 8; the list below shows the minimal required spine. This is the same system composition with additional outputs, not a new independent configuration:
+**Example:** **SOURCE EDIT**, extend `/etc/nixos/flake.nix` to this complete version. Preserve your verified `system` string, chosen branch/pin, and any optional module entries you intentionally added in stage 8; the list below shows the minimal required spine. Extend the same system composition with these additional outputs:
 
 ```nix
-# Share one pinned package set between the installed system and development tools.
+# Use one pinned Nixpkgs source for the system and explicit development package set.
 {
     description = "Progressive NixOS configuration";
     inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
@@ -876,7 +872,11 @@ No. The old generation restores selected software/configuration artifacts, not t
     outputs = { self, nixpkgs, ... }:
         let
             system = "REPLACE_WITH_SYSTEM";
-            pkgs = import nixpkgs { inherit system; };
+            pkgs = import nixpkgs {
+                inherit system;
+                config = {};
+                overlays = [];
+            };
         in
         {
             nixosConfigurations.workstation = nixpkgs.lib.nixosSystem {
@@ -896,7 +896,7 @@ No. The old generation restores selected software/configuration artifacts, not t
 }
 ```
 
-`import nixpkgs { inherit system; }` evaluates the selected Nixpkgs package-set function for this platform. These shell packages are not automatically subject to future OS-only overlays; stage 12 discusses that boundary.
+`import nixpkgs { inherit system; config = {}; overlays = []; }` evaluates the locked Nixpkgs source for this platform. Explicit `config` and `overlays` make this standalone package-set choice independent of ambient user configuration, following the [official best-practices guide](https://nix.dev/guides/best-practices#nixpkgs-config). The NixOS module system independently configures its package set through its module settings: preserve your existing NixOS configuration and overlays. Stage 12 shows how to customize that system package set and explicitly share an overlay when desired.
 
 **Expected outcome:** The flake still wraps your installed machine and now also exposes an explicitly platform-specific package and shell.
 
@@ -904,7 +904,7 @@ No. The old generation restores selected software/configuration artifacts, not t
 
 **Rationale:** Temporary tool availability should have an understandable boundary.
 
-**Explanation:** `nix develop` looks for `devShells.<system>.default` before falling back to a package’s build environment. Inside it, tools and build-related environment variables are available. Your current directory and ordinary file permissions still matter. `exit` returns to the outer shell; it does not undo files you created while inside. An environment is repeatable tool selection, not automatic cleanup of project state.
+**Explanation:** `nix develop` looks for `devShells.<system>.default` before falling back to a package’s build environment. Inside it, tools and build-related environment variables are available. Your current directory and ordinary file permissions still matter. `exit` returns to the outer shell; files you created while inside persist. The environment provides repeatable tool selection; manage project-state cleanup separately.
 
 **Example:** **BUILD-ONLY plus interactive shell execution**, from any directory, after reviewing the flake and its hooks:
 
@@ -922,7 +922,7 @@ exit
 
 For a real application project, keep its own flake and lock in that project rather than making `/etc/nixos` own all application dependencies. The system-source location here merely keeps the learning spine continuous.
 
-**Expected outcome:** Tools are available inside the environment, no OS rebuild was needed, and leaving does not erase project work.
+**Expected outcome:** Tools are available inside the environment independently of an OS rebuild, and project work persists after leaving.
 
 ### Build, run, and check named outputs
 
@@ -938,7 +938,7 @@ nix build --no-link --print-out-paths --no-update-lock-file path:/etc/nixos#defa
 nix run --no-update-lock-file path:/etc/nixos#default -- --greeting 'One flake, several outputs'
 ```
 
-Here the package fallback runs Hello; it does not activate the NixOS configuration.
+Here the package fallback executes Hello while the NixOS activation stays unchanged.
 
 **Expected outcome:** You can select outputs by purpose without confusing package execution with system activation.
 
@@ -946,9 +946,9 @@ Here the package fallback runs Hello; it does not activate the NixOS configurati
 
 **Rationale:** Different commands solve different tool-use problems.
 
-**Explanation:** A single executable is not the same as a shell with several coordinated tools.
+**Explanation:** One-shot execution and a shell containing several coordinated tools serve different tasks.
 
-**Example:** No command is needed. Choose a command for each: run Hello once; build its output without a result link; enter the declared tool environment.
+**Example:** Choose a command for each: run Hello once; build its output without a result link; enter the declared tool environment.
 
 **Expected outcome:** Success criterion: name the three commands and explain which one executes a shell.
 
@@ -982,7 +982,7 @@ Use `nix run path:/etc/nixos#default` for one execution; `nix build --no-link pa
 }
 ```
 
-In the existing flake’s output set, add `nixosModules.commonTools = import ./modules/common-tools.nix;`. In the `workstation` modules list, **replace** `./modules/cli-tools.nix` with `self.nixosModules.commonTools`, then add the inline module `{ tutorial.commonTools.enable = true; }` as another list item. Keep `./configuration.nix`, `./modules/nix-cli.nix`, and any chosen optional modules. This is a deliberate replacement of the same package responsibility; do not retain both copies. The old unreferenced file can remain harmlessly in source until you decide to remove it.
+In the existing flake’s output set, add `nixosModules.commonTools = import ./modules/common-tools.nix;`. In the `workstation` modules list, **replace** `./modules/cli-tools.nix` with `self.nixosModules.commonTools`, then add the inline module `{ tutorial.commonTools.enable = true; }` as another list item. Keep `./configuration.nix`, `./modules/nix-cli.nix`, and any chosen optional modules. This replacement keeps one owner for the shared package definitions. The old unreferenced file can remain harmlessly in source until you decide to remove it.
 
 **Expected outcome:** A reusable module has a documented public switch, and the existing workstation consumes it without duplicating its tool definitions.
 
@@ -990,9 +990,9 @@ In the existing flake’s output set, add `nixosModules.commonTools = import ./m
 
 **Rationale:** Customizing one package and replacing that package throughout a package set have different reach.
 
-**Explanation:** `package.override` changes arguments accepted by that package’s recipe function; inspect the recipe’s actual arguments first. There is no universal `enableFeature` argument. `package.overrideAttrs` changes attributes passed through the package’s derivation helper and returns a new derivation. An **overlay** is a function `final: prev: { ... }` extending a package set: `prev` is the prior set and `final` is the final composed set. Refer to the original package through `prev` to avoid recursively defining a package in terms of itself. Dependencies of a customized package usually come from `final`.
+**Explanation:** `package.override` changes arguments accepted by that package’s recipe function; inspect the recipe’s actual arguments first. Accepted arguments are specific to each recipe. `package.overrideAttrs` changes attributes passed through the package’s derivation helper and returns a new derivation. An **overlay** is a function `final: prev: { ... }` extending a package set: `prev` is the prior set and `final` is the final composed set. Refer to the original package through `prev` to avoid recursively defining a package in terms of itself. Dependencies of a customized package usually come from `final`.
 
-Overlays can cause downstream rebuilds and are ordered, unlike a simplistic “all module files override in order” story. See the official [overrides chapter](https://raw.githubusercontent.com/NixOS/nixpkgs/nixos-26.05/doc/using/overrides.chapter.md) and [overlays chapter](https://raw.githubusercontent.com/NixOS/nixpkgs/nixos-26.05/doc/using/overlays.chapter.md).
+Overlay order affects package-set composition and can cause downstream rebuilds. NixOS module definitions instead merge according to option types and priorities. See the official [overrides chapter](https://raw.githubusercontent.com/NixOS/nixpkgs/nixos-26.05/doc/using/overrides.chapter.md) and [overlays chapter](https://raw.githubusercontent.com/NixOS/nixpkgs/nixos-26.05/doc/using/overlays.chapter.md).
 
 **Example:** Optional **SOURCE EDIT**, complete `/etc/nixos/modules/package-customization.nix`:
 
@@ -1013,38 +1013,38 @@ Overlays can cause downstream rebuilds and are ordered, unlike a simplistic “a
 
 Include it in the existing workstation modules list only if you want this experiment. The executable remains `hello`; this example changes a derivation name, not its source version. A narrower one-use alternative is `pkgs.hello.overrideAttrs (old: { pname = "${old.pname}-tutorial"; })` directly where a package is selected. Neither expression should be confused with a NixOS option-priority override such as `mkForce`.
 
-The OS module’s overlay affects its system package set, not automatically the separately imported `pkgs` used by the dev shell in stage 11. To share customization there, explicitly pass the same reviewed overlay to that import. Do not claim an overlay is global to every Nix command or profile.
+The OS module’s overlay applies to its system package set. The development shell in stage 11 uses a separately imported `pkgs` with explicit configuration and overlays. To share customization there, explicitly pass the same reviewed overlay to that import. Each independently constructed package set has its own overlay selection.
 
 **Expected outcome:** You can choose a local override when only one result needs customization and an overlay when a package-set-wide policy is actually intended.
 
-### Compose fictional machines without copying their hardware
+### Share modules and preserve machine-specific hardware
 
-**Rationale:** Sharing software policy should not share disk identities or boot assumptions.
+**Rationale:** Share software policy while keeping disk identities and boot settings machine-specific.
 
-**Explanation:** `nixosModules.commonTools` exports a reusable building block; `nixosConfigurations.workstation` exports a complete system. A third-party module must be imported into a system composition before it has an effect. A third-party complete configuration is not automatically appropriate for your hardware. There is no universal command that safely “applies any flake.” Native references can build, run, or add a package directly, but a reusable OS module still needs deliberate composition.
+**Explanation:** `nixosModules.commonTools` exports a reusable building block; `nixosConfigurations.workstation` exports a complete system. A third-party module must be imported into a system composition before it has an effect. A third-party complete configuration is not automatically appropriate for your hardware. Choose the command and composition method for the flake’s output type. Native references can build, run, or add a package directly, but a reusable OS module still needs deliberate composition.
 
 For an additional flake input already declared with the illustrative name `desktop`, `inputs.desktop.inputs.nixpkgs.follows = "nixpkgs";` can make that input reuse your Nixpkgs input. Substitute your actual input name for `desktop`. It is optional dependency alignment, not required flake boilerplate; verify compatibility before imposing it. See [flake concepts](https://nix.dev/concepts/flakes.html) and the [flake output/reference contract](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake.html).
 
-**Example:** No shell command is needed. For a future second fictional machine, `travel`, retain `workstation` unchanged and add `nixosConfigurations.travel` using `nixpkgs.lib.nixosSystem` with **that machine’s verified platform**. Its modules should include its own complete configuration, for example `./hosts/travel/configuration.nix`, the shared `nix-cli.nix`, `self.nixosModules.commonTools`, and `{ tutorial.commonTools.enable = true; }`. First obtain the actual machine-specific configuration and keep its hardware imports inside the flake tree. Do not point the second system at the workstation’s root `configuration.nix` merely to make evaluation succeed.
+**Example:** For a future second fictional machine, `travel`, retain `workstation` unchanged and add `nixosConfigurations.travel` using `nixpkgs.lib.nixosSystem` with **that machine’s verified platform**. Its modules should include its own complete configuration, for example `./hosts/travel/configuration.nix`, the shared `nix-cli.nix`, `self.nixosModules.commonTools`, and `{ tutorial.commonTools.enable = true; }`. First obtain the actual machine-specific configuration and keep its hardware imports inside the flake tree. Point the second system at its own machine configuration, preserving its hardware and boot settings.
 
-This is a composition plan, not a ready-to-build second host: no second machine’s hardware/platform has been supplied. Keep the working one-machine spine until that input exists. Defer remote deployment, cross-compilation, package-language build helpers, custom kernels, image generation, secret-management integrations, and Home Manager until their prerequisites solve a real need. Home Manager is a separate project, not a built-in prerequisite for user profiles or NixOS.
+Use this composition plan once you have the second machine’s verified hardware configuration and platform. Keep the working one-machine spine until that input exists. Defer remote deployment, cross-compilation, package-language build helpers, custom kernels, image generation, secret-management integrations, and Home Manager until their prerequisites solve a real need. Home Manager is a separate project, not a built-in prerequisite for user profiles or NixOS.
 
-**Expected outcome:** You can design shared policy and separate machine identity without pretending that a copied configuration makes arbitrary hardware bootable.
+**Expected outcome:** You can design shared policy and separate machine identity while preserving each machine’s actual boot and hardware requirements.
 
 ### Practice: choose the abstraction
 
-**Rationale:** Advanced features should reduce a demonstrated problem, not introduce speculative structure.
+**Rationale:** Select advanced features to solve a demonstrated reuse or customization need.
 
 **Explanation:** A module changes system options; an override changes one package result; an overlay changes a package set.
 
-**Example:** No command is needed. Which mechanism fits each goal: share an SSH policy between machines; rename one Hello derivation for an experiment; replace a library consistently across a package set?
+**Example:** Which mechanism fits each goal: share an SSH policy between machines; rename one Hello derivation for an experiment; replace a library consistently across a package set?
 
 **Expected outcome:** Success criterion: choose a module, local override, and overlay respectively, with awareness of rebuild reach.
 
 <details>
 <summary>Worked solution</summary>
 
-Use a reusable NixOS module for system service policy, `overrideAttrs` for one package result, and a deliberately scoped overlay for a package-set-wide replacement. Inspect real recipe arguments before using `override`; never invent a package argument to match an imagined feature.
+Use a reusable NixOS module for system service policy, `overrideAttrs` for one package result, and a deliberately scoped overlay for a package-set-wide replacement. Inspect real recipe arguments before using `override`; select supported arguments from that recipe.
 
 </details>
 
@@ -1064,7 +1064,7 @@ An error trace can mention Nixpkgs internals because that is where your value wa
 nix eval --show-trace --no-update-lock-file --raw path:/etc/nixos#nixosConfigurations.workstation.config.networking.hostName
 ```
 
-For a type error, compare `enable = "true";` with the required Boolean `enable = true;`. For “option does not exist,” check the selected release’s option name, whether the declaring module was imported, and spelling. Do not “fix” it by assigning an unrelated attribute elsewhere.
+For a type error, compare `enable = "true";` with the required Boolean `enable = true;`. For “option does not exist,” check the selected release’s option name, whether the declaring module was imported, and spelling. Correct the relevant option declaration, import, or definition at its owning location.
 
 **Expected outcome:** You can classify the error and make one evidence-based correction at the correct layer.
 
@@ -1072,11 +1072,11 @@ For a type error, compare `enable = "true";` with the required Boolean `enable =
 
 **Rationale:** A small known difference is easier to explain than an entire new personal configuration.
 
-**Explanation:** Keep a known-good source/lock pair and record what failed. First separate source changes from input changes: did it fail with new source and old pins, or unchanged source and new pins? Restore a coherent test state using your existing backup/history workflow. Avoid changing packages, services, networking, and release branch at the same time.
+**Explanation:** Keep a known-good source/lock pair and record what failed. First separate source changes from input changes: did it fail with new source and old pins, or unchanged source and new pins? Restore a coherent test state using your existing backup/history workflow. Change packages, services, networking, and the release branch in separate reviewed steps.
 
-For many candidate edits, **bisection** means testing roughly half the changes, then narrowing to the half associated with failure, while keeping the required hardware/base configuration intact. Start with evaluation or build checks; do not repeatedly activate arbitrary halves on an important machine. Runtime-only failures need a controlled test/recovery environment and state-aware testing. A “bad” result can come from an incompatible combination rather than one defective line.
+For many candidate edits, **bisection** means testing roughly half the changes, then narrowing to the half associated with failure, while keeping the required hardware/base configuration intact. Start with evaluation or build checks; reserve activation tests for controlled candidates with recovery access. Runtime-only failures need a controlled test/recovery environment and state-aware testing. A “bad” result can come from an incompatible combination rather than one defective line.
 
-**Example:** No command is needed. A system builds before adding three optional modules, then fails evaluation. Keep the installed configuration and core modules. Temporarily omit only the new optional imports in source, re-add them incrementally, and inspect the earliest failure. If the symptom is a failed service, collect its logs instead of assuming package compilation was the cause.
+**Example:** A system builds before adding three optional modules, then fails evaluation. Keep the installed configuration and core modules. Temporarily omit only the new optional imports in source, re-add them incrementally, and inspect the earliest failure. If the symptom is a failed service, collect its logs instead of assuming package compilation was the cause.
 
 **Expected outcome:** You can produce a minimal reproducible source/input difference and state exactly which check distinguishes good from bad.
 
@@ -1092,28 +1092,26 @@ For many candidate edits, **bisection** means testing roughly half the changes, 
 | Dirty source warning | Inspect intended edits; tracked dirty changes are normally included, not automatically ignored. |
 | Unexpected package version | Check the selected flake/pin and which profile or shell owns the executable. |
 | Updating a channel changed nothing | Verify that this system is actually built from the flake lock, not that channel. |
-| Conflicting definitions | Read both definitions and option type/priority; do not immediately add `mkForce`. |
+| Conflicting definitions | Read both definitions and option type/priority; select an override priority only after understanding the conflict. |
 | Infinite recursion | Look for a value depending on itself, or a whole-module conditional on the configuration it constructs; consider the documented `mkIf` pattern. |
 | Fetch/build takes a long time | Check cache/network availability, actual build logs, architecture, resources, and foundational overrides. |
 | Build succeeded but service failed | Inspect activation output, `systemctl status`, and service journal. |
-| Permission denied writing source | Use authorized source-edit access; do not change ownership/modes just to silence it. |
+| Permission denied writing source | Use authorized source-edit access while preserving ownership and modes. |
 | Disk remains full after package removal | Check retained generations and reachability before any deletion. |
 
 For a learning sequence after diagnosis, follow [the next-step plan](#appendix-c-next-step-plan).
 
-[Video insight, approximately 01:07:00–01:19:00](https://www.youtube.com/watch?v=zdZvKWpNzU8&t=4020s): the stories about needing a working network support the practical recommendation to learn before depending on an unfamiliar setup. They are anecdotes, not evidence that a particular distribution always fails or succeeds.
+**Example:** Write a short change record: intended result, source files changed, input revision, evaluation/build result, activation mode, runtime check, and recovery target. Redact private details before sharing it.
 
-**Example:** No command is needed. Write a short change record: intended result, source files changed, input revision, evaluation/build result, activation mode, runtime check, and recovery target. Redact private details before sharing it.
-
-**Expected outcome:** You have a manageable next-step plan and can ask for help with versions, relevant configuration, exact error, and what already worked—without publishing secrets or an entire private machine tree.
+**Expected outcome:** You have a manageable next-step plan and can ask for help with versions, relevant configuration, exact error, and what already worked—using a minimal relevant configuration excerpt with secrets and private details redacted.
 
 ### Practice: diagnose before changing more
 
-**Rationale:** A successful diagnosis often consists of choosing the next observation, not immediately editing another option.
+**Rationale:** A useful diagnosis starts with the observation that can distinguish competing causes.
 
 **Explanation:** Build success and runtime success have different evidence.
 
-**Example:** No command is needed. After changing SSH configuration, the system builds but remote login fails. Should your next action be “update all flake inputs,” or should you inspect a narrower boundary? Name three useful observations and one safety condition.
+**Example:** After changing SSH configuration, the system builds but remote login fails. Should your next action be “update all flake inputs,” or should you inspect a narrower boundary? Name three useful observations and one safety condition.
 
 **Expected outcome:** Success criterion: choose runtime/service/network evidence and keep an existing recovery path.
 
@@ -1130,7 +1128,7 @@ Keep the current working console or alternate login. Inspect activation output, 
 
 **Rationale:** Commands are easier to remember when organized around intent and effect.
 
-**Explanation:** This reference assumes the feature module is active, placeholders were replaced, the source tree was reviewed for secrets, pins exist, and the source remains `/etc/nixos`. Otherwise use stage 6/7’s temporary feature flags. All commands below work from any directory because references are explicit. Read the owning stage before using a command; this is not a script to run top-to-bottom.
+**Explanation:** This reference assumes the feature module is active, placeholders were replaced, the source tree was reviewed for secrets, pins exist, and the source remains `/etc/nixos`. Otherwise use stage 6/7’s temporary feature flags. All commands below work from any directory because references are explicit. Read the owning stage before using a command; select the individual task you intend to perform.
 
 **Example:** The table is a compact command reference; only run the task you intend. Commands are also shown in Bash fences below to keep their shell syntax unambiguous.
 
@@ -1197,7 +1195,7 @@ nix profile rollback
 sudo nixos-rebuild switch --rollback
 ```
 
-**Use trusted development outputs** (**BUILD-ONLY plus execution**, not sandboxed):
+**Use trusted development outputs** (**BUILD-ONLY plus execution**, normal user file/network access):
 
 ```bash
 nix develop --no-update-lock-file path:/etc/nixos
@@ -1246,11 +1244,11 @@ nix store gc
 | Profile | A selected package environment with history, distinct from your configuration source. |
 | Pure flake evaluation | Evaluation constrained to declared/captured inputs rather than arbitrary host context. |
 | Realization | Obtaining required store outputs through fetching or building. |
-| Store | Nix-managed artifact storage, normally `/nix/store`; not a secret vault. |
+| Store | Nix-managed artifact storage, normally `/nix/store`, generally readable by local users; keep secrets elsewhere. |
 | Substitute | A prebuilt store result obtained from a configured cache. |
 | `system` | Often a platform pair such as `aarch64-linux`; not the same as `system.stateVersion`. |
 
-**Example:** No command is needed. In “evaluate the flake, realize the system output, then activate,” the first step computes a description, the second obtains artifacts, and the third affects running OS state.
+**Example:** In “evaluate the flake, realize the system output, then activate,” the first step computes a description, the second obtains artifacts, and the third affects running OS state.
 
 **Expected outcome:** You can translate the vocabulary back into source, store, selection, and runtime responsibilities.
 
@@ -1260,7 +1258,7 @@ nix store gc
 
 **Rationale:** Repeated small, understood changes build more useful confidence than adopting a large configuration you cannot explain.
 
-**Explanation:** **Recommendation/convention:** Maintain one machine and one purpose per change for the next few sessions:
+**Explanation:** Maintain one machine and one purpose per change for the next few sessions:
 
 1. Change a small package selection, inspect the source, and build before choosing activation.
 2. Make a small service change with recovery access available, then verify its actual behavior.
@@ -1268,53 +1266,41 @@ nix store gc
 4. Rehearse recovery on a noncritical system, including the distinction between software rollback and restoring data.
 5. Introduce a reusable module only when another current consumer needs the same policy. Read a package recipe before customizing it, and defer additional tools until you can explain what they own.
 
-**Example:** No command is needed. Pick one session above and write its intended result, files and pins, check, activation decision, and recovery target before starting. Use the owning stage’s commands rather than improvising a new workflow.
+**Example:** Pick one session above and write its intended result, files and pins, check, activation decision, and recovery target before starting. Use the owning stage’s commands rather than improvising a new workflow.
 
 **Expected outcome:** You have an incremental maintenance plan with an observable success check and a recovery boundary for each change.
 
 ## Appendix D. Sources and evidence limits
 
-### How to read the source classifications
+### Choose a version-matched reference
 
-**Rationale:** A reference manual, a conversational analogy, and an author’s workflow preference should not carry the same evidential weight.
+**Rationale:** Version-matched references help you check command behavior and adapt a workflow to your machine.
 
-**Explanation:** **Official** means retrieved project-maintained manuals or official source-tree documentation. These govern the technical contracts used here. **Official community wiki** means project-hosted community guidance; it can contain dated examples and is secondary to the primary manuals. **Video insight/example** means a paraphrased idea or anecdote from the supplied transcript, not independent verification of current behavior. **Recommendation/convention** means this tutorial’s chosen workflow, such as `modules/`, explicit `path:` references, and one change at a time; those are not mandatory NixOS laws.
+**Explanation:** Project-maintained manuals and official source-tree documentation specify the interfaces used here. The project-hosted community wiki provides supplementary examples; check their release and date against the primary manuals. This tutorial uses `modules/`, explicit `path:` references, and small reviewed changes as a consistent learning workflow.
 
-Sources were retrieved on **2026-11-14 UTC**. Stable documentation URLs can move to newer versions later; compare your installed version with the relevant manual. Near-claim links identify the source supporting that claim. No claim is made that these examples were executed on your hardware or that a Markdown/static review proves their runtime success.
+Stable documentation URLs can move to newer versions. Compare your installed version with the relevant manual; near-claim links lead to the supporting contract.
 
-**Example:** No command is needed. “`test` activates without choosing the boot default” is an official command behavior. “Build before activating” is a safety recommendation. “The terminology initially felt difficult” is a conversational experience, not a measured learning-time requirement.
+**Example:** Check `test` in the configuration manual to confirm that it activates candidate services and retains the existing boot default. Then use stage 7’s build-first workflow to review the candidate before activation.
 
-**Expected outcome:** You can distinguish a supported interface contract from an analogy, anecdote, or suggested convention.
+**Expected outcome:** You can find the interface contract for your release and apply it to a reviewed maintenance workflow.
 
 ### Official documentation used
 
 **Rationale:** The original sources provide deeper contracts and version-specific details when examples stop being sufficient.
 
-**Explanation:** The following retrieved URLs support this tutorial. They are grouped by subject rather than presented as evidence that every possible configuration has been verified.
+**Explanation:** These references are grouped by subject so you can look up syntax, side effects, and release-specific requirements.
 
-**Example:** No command is needed; choose the source matching the question:
+**Example:** Choose the source matching your question:
 
-- Language: [nix.dev language basics](https://nix.dev/tutorials/nix-language.html).
+- Language: [nix.dev language basics](https://nix.dev/tutorials/nix-language.html); [best practices](https://nix.dev/guides/best-practices).
 - Flakes: [concepts, tradeoffs, and alternatives](https://nix.dev/concepts/flakes.html); [Nix flake reference](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake.html).
 - Store recipes and selection: [derivations](https://nix.dev/manual/nix/stable/language/derivations.html); [profiles](https://nix.dev/manual/nix/stable/package-management/profiles.html).
-- NixOS: [stable manual](https://nixos.org/manual/nixos/stable/); [release notes](https://nixos.org/manual/nixos/stable/release-notes.html). Consult the actual release section; old snippets are not an upgrade plan.
+- NixOS: [stable manual](https://nixos.org/manual/nixos/stable/); [release notes](https://nixos.org/manual/nixos/stable/release-notes.html). Consult the actual release section; use those release-specific requirements to plan an upgrade.
 - Nixpkgs: [stable manual, including `mkShell`](https://nixos.org/manual/nixpkgs/stable/); [26.05 overlays chapter](https://raw.githubusercontent.com/NixOS/nixpkgs/nixos-26.05/doc/using/overlays.chapter.md); [26.05 overrides chapter](https://raw.githubusercontent.com/NixOS/nixpkgs/nixos-26.05/doc/using/overrides.chapter.md).
 - Profile CLI: [add](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-add.html), [list](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-list.html), [remove](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-remove.html), [upgrade](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-upgrade.html), [history](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-history.html), [rollback](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-rollback.html).
 - Tool/build CLI: [shell page (`nix env shell`, with `nix shell` examples)](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-env-shell.html), [build](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-build.html), [develop](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-develop.html), [run](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-run.html), [eval](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-eval.html).
 - Lock/check CLI: [update](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-update.html), [lock](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-lock.html), [check](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-check.html).
 - Cleanup: [GC explanation](https://nix.dev/manual/nix/stable/package-management/garbage-collection.html), [store GC](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-store-gc.html), [collect-garbage](https://nix.dev/manual/nix/stable/command-ref/nix-collect-garbage.html).
-- Secondary official community wiki: [Nixos-rebuild](https://wiki.nixos.org/wiki/Nixos-rebuild), [Flakes](https://wiki.nixos.org/wiki/Flakes). Dated wiki implementation notes are not used to override current manual behavior.
+- Secondary official community wiki: [Nixos-rebuild](https://wiki.nixos.org/wiki/Nixos-rebuild), [Flakes](https://wiki.nixos.org/wiki/Flakes). Use the current primary manual to resolve differences with dated wiki notes.
 
-**Expected outcome:** You have a bounded source list for checking syntax, effects, and release-specific behavior without treating random configuration repositories as universal templates.
-
-### Video and transcript provenance
-
-**Rationale:** A conversational source can improve explanations without becoming the authority for current commands.
-
-**Explanation:** The video is [#268 Long Awaited NixOS Episode | Tristan Ross](https://www.youtube.com/watch?v=zdZvKWpNzU8). This tutorial used the **user-provided English ASR transcript**, read in full through a normalization that removes tags and immediately overlapping rolling captions. It is not a verbatim transcript; technical terms and names may be misrecognized. The supplied coverage is approximately **00:00:01–01:52:57.5**. The transcript was accessed as task material; no audio/video watching is claimed.
-
-Only a few timestamped conceptual insights are cited in the body. Claims about current interfaces were cross-checked against official documentation. Historical package counts, predictions, distribution comparisons, Git-performance claims, and personal hardware anecdotes were not promoted into current technical facts.
-
-**Example:** No command is needed. Use the recipe analogy to understand the distinction between a description and a result, then use the official derivation and command references to decide what a real operation does.
-
-**Expected outcome:** You know what the video contributed, what it did not verify, and where the tutorial’s factual and runtime limits remain.
+**Expected outcome:** You have a bounded source list for checking syntax, effects, and release-specific behavior and adapting examples to your machine’s verified configuration.
