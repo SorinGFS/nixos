@@ -1,21 +1,13 @@
 # NixOS terminal cookbook
 
-NixOS 26.05 with GNOME. For installation, see [install.md](install.md); this cookbook documents the repository's configuration.
-
-## Setup rationale
-
-- **Native source of truth:** [flake.nix](flake.nix) declares inputs and delegates module exports and checks to [system/configuration.nix](system/configuration.nix), composed from focused system modules and [settings sources](settings/default.nix). The installer integrates it into a machine-local NixOS flake; existing installations can [integrate it manually](system/readme.md#integrate-the-desktop-module). Apply changes through that local configuration.
-- **System responsibilities:** The local configuration owns host identity, accounts, boot, storage, hardware, and state version. [core.nix](system/core.nix) owns GNOME, networking, locale, Bash initialization and manual updates; [desktop-features.nix](system/desktop-features.nix) owns shared desktop services and packages. The [complete preset and selectable policies](system/readme.md#selecting-policies) separate administration, power, virtualization and external KeePass integration.
-- **Session versus shell:** GNOME provides the graphical session; Linux accounts and system configuration own user authority and Bash. Linux console access is independent of GNOME. The console, Kitty, and VSCodium's embedded terminal share Bash setup; Kitty and VSCodium still require a graphical session. Administration uses root authentication through `su`.
-- **Manual updates:** Scheduled unattended system upgrades are disabled so the operator chooses the maintenance window. [Update the whole system, including Firefox Nightly](system/readme.md#update-the-desktop-input-and-apply-it), by refreshing the local flake inputs, building, and then choosing when to activate.
-- **User toolchain:** The system provides fnm and Bash integration for project-based Node version selection across terminals. Node versions and additional user tools are user-managed.
-- **Defaults versus preferences:** Settings modules generate unlocked GNOME defaults and seed missing GH, VLC, and VSCodium files. This deliberately preserves GUI changes: user overrides win, and existing seeded files remain user-owned.
-- **One editor package:** The [VSCodium customization](settings/vscodium/default.nix) serves both system installation and extension provisioning. Desktop-only `--force-user-env` counters the CLI launcher's environment-resolution bypass; terminal launches retain the inherited project selection.
+NixOS 26.05 with GNOME. The module guides document configuration ownership, defaults, and maintenance procedures.
 
 ## Index
 
 ### System
 
+- [Installation](system/readme.md#installation)
+- [Composition and ownership](system/readme.md#composition-and-ownership)
 - [System configuration, packages and upgrades](system/readme.md)
 - [Integrate the desktop module](system/readme.md#integrate-the-desktop-module)
 - [Select desktop policies](system/readme.md#selecting-policies)

@@ -18,6 +18,8 @@ codium --list-extensions --show-versions
 
 Official references: [VSCodium usage](https://github.com/VSCodium/vscodium/blob/master/docs/usage.md), [upstream editor extension CLI](https://code.visualstudio.com/docs/configure/command-line#_working-with-extensions).
 
+The editor package, generated VSIX, and writable extension store have distinct lifecycles. A system rollback does not rewind GUI-managed extensions or profile data; the [mutable-state explanation](../../tutorial/nix.md#generations-and-mutable-data) describes this recovery boundary.
+
 ## Change initial VSCodium preferences
 
 Edits to `settings/vscodium/index.json` change initial preferences after [project activation](../../system/readme.md#apply-native-configuration-edits). Native user tmpfiles seeds `~/.config/VSCodium/User/settings.json` when missing as a writable user-owned file. Existing files and later GUI edits retain their values; source changes affect future seeds. The seed destination is fixed at this standard path, independent of `XDG_CONFIG_HOME`.
@@ -35,7 +37,9 @@ Official documentation: [editor settings](https://code.visualstudio.com/docs/con
 
 ## Desktop launch environment
 
-[Setup rationale](../../readme.md#setup-rationale) describes package and environment ownership.
+[default.nix](default.nix) customizes `pkgs.vscodium` through an overlay, so system installation and extension provisioning share one editor package. Its desktop entries and actions add `--force-user-env`, countering the CLI launcher's environment-resolution bypass for graphical launches. Terminal launches retain the inherited project selection. The system provides fnm and Bash integration; Node versions remain user-managed.
+
+This desktop-entry customization has application-local launch effects even though the overlay supplies the shared package value. [Package overrides and overlays](../../tutorial/readme.md#package-overrides-and-package-set-overlays) explain that distinction; [launcher environments](../../tutorial/nix.md#script-interpreters-and-launcher-environments) explain process-local environment scope.
 
 Desktop-launch verification follows [project activation](../../system/readme.md#apply-native-configuration-edits) and a full VSCodium exit. It tests an extension invoking external Node after a dash launch, then repeats through Open With after another full exit. Integrated-terminal `node --version` verifies the terminal environment; extension-host Node selection requires its own test for each relevant extension.
 

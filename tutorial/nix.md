@@ -1,8 +1,8 @@
-# Nix identities, dependencies, and project boundaries
+# Nix identities, dependencies, and composition boundaries
 
 Nix gives each prepared package variant a distinct place in the store. That location connects a build description to particular dependencies and lets old and new variants coexist. Files and modules organize the description; store identities organize the results. Those are different kinds of boundary.
 
-This chapter explains that relationship from source text to running processes, then applies it to this project's desktop and Firefox composition. A package is prepared software; a dependency is something needed to prepare or run it. The remaining terms are introduced as they become useful. The optional progressive tutorial supplies [language foundations](readme.md#3-reading-the-nix-language), [module composition](readme.md#4-inspecting-installed-configuration-and-modules), and the [operational build and activation sequence](readme.md#7-building-testing-and-activating-the-system).
+This chapter explains that relationship from source text to running processes, then applies it to a hypothetical desktop and external application composition. A package is prepared software; a dependency is something needed to prepare or run it. The remaining terms are introduced as they become useful. The optional progressive tutorial supplies [language foundations](readme.md#3-reading-the-nix-language), [module composition](readme.md#4-inspecting-installed-configuration-and-modules), and the [operational build and activation sequence](readme.md#7-building-testing-and-activating-the-system).
 
 All examples below are explanatory and unexecuted. Diagrams use fictional labels such as `APP_A` and `LIB_B`; these labels are not valid store digests or executable paths. Nix fragments illustrate an expression in an existing context rather than complete runnable configurations. Standard store paths describe Nix's mechanisms, not files to edit.
 
@@ -13,7 +13,7 @@ All examples below are explanatory and unexecuted. Diagrams use fictional labels
 - [Build dependencies](#4-dependency-edges-during-evaluation-and-building) and [runtime closures](#5-runtime-references-and-closures): what gets built, shared, and retained.
 - [The four meanings of linking](#6-four-different-meanings-of-linking): source imports, executable linking, launcher environments, and filesystem links.
 - [Caches and reproducibility](#7-substitution-reproducibility-and-trust) and [running state](#8-coexistence-running-state-and-retention): what reuse and rollback actually guarantee.
-- [The current project](#9-the-current-projects-composition), [architecture choices](#10-architecture-choices-implied-by-the-mechanics), [manual updates](#11-manual-updates-across-four-kinds-of-state), and [a worked recap](#12-a-compact-worked-interpretation).
+- [An external application composition](#9-an-external-application-composition), [architecture choices](#10-architecture-choices-implied-by-the-mechanics), [manual updates](#11-manual-updates-across-four-kinds-of-state), and [a worked recap](#12-a-compact-worked-interpretation).
 
 ## 1. The journey from description to execution
 
@@ -510,57 +510,72 @@ retained generation --> application --> library
 
 A library can remain necessary even when absent from an explicit package list, because a retained application references it. Conversely, store presence alone does not mean a package is selected or running. Garbage collection concerns reachability and retention, not an assurance that every cached application is executing or that an untrusted application is safe.
 
-## 9. The current project's composition
+## 9. An external application composition
 
-The current root [flake](../flake.nix) declares Nixpkgs on `nixos-26.05` and the Firefox Nightly input. The Nightly input's Nixpkgs input follows the root Nixpkgs input. The flake's output function delegates to [system/configuration.nix](../system/configuration.nix).
+Consider a hypothetical reusable desktop flake with a Nixpkgs input and an external application-packaging input named `application`. The latter's Nixpkgs input follows the root Nixpkgs input. An explicit output function delegates assembly to a separate expression:
+
+```nix
+# Illustrative flake interface; input URLs belong to the surrounding example.
+{
+    outputs = inputs: import ./composition.nix inputs;
+}
+```
 
 ```text
 flake.nix
     |
     +--> inputs.nixpkgs
-    +--> inputs.firefox-nightly
+    +--> inputs.application
     |       +--> nixpkgs follows root nixpkgs
     |
-    +--> outputs function --> system/configuration.nix
+    +--> outputs function --> composition.nix
                                   |
                                   +--> nixosModules.desktop
                                   +--> nixosModules.default
                                   +--> optional policy modules
-                                  +--> checks.x86_64-linux
+                                  +--> checks for selected platforms
 ```
 
-`desktop` passes the input set under `_module.args.desktopInputs` and imports [system/desktop.nix](../system/desktop.nix). That module composes core desktop policy, Firefox, desktop features, and settings. The `default` export combines the desktop with the separately exported root-administration, power, virtualisation, and KeePass policies. The [checks](../system/checks.nix) construct consumer configurations to inspect the exported composition; they are not installed host declarations.
+In this example, `desktop` passes the input set under `_module.args.featureInputs` and imports a desktop module. That module composes shared policy, application integration, desktop features, and settings adapters. A `default` export combines the desktop with separately exported optional policies. Checks can construct consumer configurations to inspect the exports without declaring an installed host.
 
-This is module organization. The `desktopInputs` name identifies an argument contract: the Firefox module expects that argument to contain the Nightly input. The exported desktop composition supplies it through `_module.args`. A consumer importing the Firefox file directly needs to supply the same argument contract; an import alone does not invent its external dependencies. Modules using the supplied package set and inputs participate in the surrounding composition.
+This is module organization. The name `featureInputs` identifies an explicit argument contract: the application module expects that argument to contain its external input. The exported composition supplies it through `_module.args`. A consumer importing the application module directly must supply that contract too; importing a file does not invent its external dependencies. Modules using the supplied package set and inputs participate in the surrounding composition. Passing a whole input set is one interface choice, not a requirement; a narrower package argument can establish a different contract.
 
-### The Firefox package choice
+### The application package choice
 
-[system/firefox.nix](../system/firefox.nix) selects the Nightly binary package for `pkgs.stdenv.hostPlatform.system` and applies `overrideAttrs`. Its wrapper arguments extend the original arguments with application-local environment settings:
+Suppose the hypothetical packaging input exports a package named `viewer-bin` with a `makeWrapperArgs` customization hook. Selecting its host-platform variant and extending its existing launcher arguments could look like this expression fragment:
 
-- `WAYLAND_DISPLAY` is unset.
-- `GDK_BACKEND` is set to `x11`.
-- `MOZ_ENABLE_WAYLAND` is set to `0`.
+```nix
+# Customize only the selected application's launcher.
+featureInputs.application.packages.${pkgs.stdenv.hostPlatform.system}.viewer-bin.overrideAttrs (old: {
+    makeWrapperArgs = old.makeWrapperArgs ++ [
+        "--unset" "VIEWER_DEBUG"
+        "--set" "VIEWER_RENDERER" "software"
+    ];
+})
+```
 
-The module supplies this package through `lib.mkDefault`, so an ordinary consumer package definition can replace the default. This option-priority behavior differs from the package-level `overrideAttrs` customization.
+The names and environment flags are fictional; an actual recipe must expose the hook, and the application must recognize the selected environment. Here the wrapper removes an inherited debug setting and selects an application-local renderer. The host-platform lookup selects the platform of the produced program, not necessarily the builder's platform.
+
+A NixOS integration module could supply this value as its package option through `lib.mkDefault`, allowing an ordinary consumer definition to replace it. That option-priority behavior differs from the package-level `overrideAttrs` customization. The module's real declared option determines where the value belongs.
 
 ```text
-external Nightly revision
+external packaging revision
     |
     v
-Nightly package recipe
+application package recipe
     |
     +--> wrapper attribute customization
               |
               v
-      selected programs.firefox.package
+      selected integration package option
               |
               v
-      NixOS browser integration
+      NixOS application integration
 ```
 
-A wrapper change can produce a new package derivation/output while reusing the same upstream browser download when its fixed-output source is unchanged. “Rebuild” therefore need not mean recompiling the browser. Exact work depends on the package recipe and available substitutes.
+A wrapper change can produce a new package derivation/output while reusing the same upstream binary download when its fixed-output source is unchanged. “Rebuild” therefore need not mean recompiling the application. Exact work depends on the recipe and available substitutes.
 
-The wrapper's environment applies to the launched browser process and its children, rather than imposing those settings on the whole desktop session. This narrower responsibility matches an application-specific display-backend choice. It remains distinct from browser preferences, enterprise policies, profile data, and input revision ownership.
+The wrapper's environment applies to the launched process and its children rather than imposing those settings on the whole desktop session. This narrower responsibility remains distinct from application preferences, policies, mutable data, and input revision ownership.
 
 ### Input sharing and its limits
 
@@ -580,7 +595,7 @@ Source sharing is an input-graph relationship. Package identity follows the eval
 
 ## 10. Architecture choices implied by the mechanics
 
-The following design inferences connect the mechanisms above to responsibility boundaries in the current composition.
+The following design inferences connect the mechanisms above to responsibility boundaries in reusable configurations.
 
 ### Responsibility rather than hash anxiety
 
@@ -604,14 +619,14 @@ A local package override customizes a selected value. An **overlay** changes att
 ```text
 application-local selection        shared package-set policy
 
-one browser wrapper                replacement library in pkgs
+one application wrapper            replacement library in pkgs
     |                                  |
     v                                  +--> application A
 one selected package                   +--> application B
                                        +--> further dependents
 ```
 
-The current Firefox wrapper is an example of narrow application customization. A package-set-wide replacement has a larger potential rebuild and compatibility radius. Neither mechanism changes the basic rule that actual dependency edges determine propagation.
+The hypothetical application wrapper illustrates narrow application customization. A package-set-wide replacement has a larger potential rebuild and compatibility radius. Neither mechanism changes the basic rule that actual dependency edges determine propagation.
 
 A shared replacement is appropriate when consistency across consumers is the intended policy. A local override is appropriate when a special variant belongs to one selection. The choice concerns intended reach, not an attempt to avoid Nix's hashes.
 
@@ -619,13 +634,13 @@ A shared replacement is appropriate when consistency across consumers is the int
 
 A NixOS module cannot automatically add literal root-flake `inputs` declarations simply by being imported. Root input resolution happens at the flake interface; module evaluation consumes supplied values later. Packaging a feature behind a separate flake can give that flake its own external inputs, but introduces a separate source/version boundary and consumer lock relationship.
 
-For Firefox, revision selection belongs to the root input declaration and consumer lock, dependency delivery belongs to the composition's `desktopInputs` argument, and package/wrapper selection belongs to the browser module. These responsibilities have distinct owners in the current source.
+In the hypothetical composition, revision selection belongs to the root input declaration and consumer lock, dependency delivery belongs to the explicit `featureInputs` argument contract, and package/wrapper selection belongs to the application module. These responsibilities can have distinct owners even when their expressions occupy the same file.
 
 A meaningful ownership decision distinguishes:
 
-- Browser options and application policies.
+- Application options and policies.
 - Package contents and launcher behavior.
-- External Nightly source revision and update cadence.
+- External packaging source revision and update cadence.
 - Consumer acceptance, activation, and restart timing.
 
 A file layout follows that decision. Hashes neither require every feature to become its own flake nor require every package recipe to be declared at the root.
@@ -655,7 +670,7 @@ This preserves the distinction between a reusable module collection and an insta
 
 ## 11. Manual updates across four kinds of state
 
-The current [core module](../system/core.nix) sets `system.autoUpgrade.enable = false`. Its update policy remains manual. Nix's identity mechanism does not independently schedule upgrades or turn Nightly into an automatically refreshed running application.
+Consider a hypothetical NixOS configuration that explicitly sets `system.autoUpgrade.enable = false` and uses an operator-triggered update procedure. That setting disables native scheduled unattended upgrades; manual input updates and rebuilds remain available. This is an example policy, not a property required by Nix. The identity mechanism does not independently schedule upgrades or automatically refresh a running application.
 
 Four states matter:
 
@@ -684,11 +699,11 @@ activation decision
 application/service restart or reboot where required
 ```
 
-Refreshing all inputs of the machine-local consuming flake requests a refresh of both Nixpkgs and Nightly in its reachable input graph, subject to explicit pins and input relationships. An unchanged upstream revision can leave a node unchanged. Selecting only Nixpkgs for refresh is a narrower operation and is not equivalent to refreshing Nightly.[12]
+If the hypothetical machine-local consuming flake includes both Nixpkgs and an external browser-packaging input, refreshing all inputs requests a refresh of both in its reachable input graph, subject to explicit pins and input relationships. An unchanged upstream revision can leave a node unchanged. Selecting only Nixpkgs for refresh is a narrower operation and is not equivalent to refreshing the external browser input.[12]
 
 The lock refresh changes source selection, not activation. Realization prepares the selected results, not necessarily new running processes. Restart is a runtime transition, not a lock-file operation. These distinctions also permit review and recovery between stages; the [progressive update chapter](readme.md#9-updating-inputs-and-planning-release-upgrades) supplies the operational workflow.
 
-`system.stateVersion` controls compatibility defaults for persistent state. It is not a package version pin, a Nightly update switch, or a substitute for input locking. Package updates and a deliberate state migration have separate ownership.[12]
+`system.stateVersion` controls compatibility defaults for persistent state. It is not a package version pin, an application update switch, or a substitute for input locking. Package updates and a deliberate state migration have separate ownership.[12]
 
 ## 12. A compact worked interpretation
 
@@ -727,7 +742,7 @@ These cases separate three decisions: source organization, package customization
 
 ## Sources and reading guide
 
-The numbered references identify the owning documentation for the mechanisms discussed. The Nix references use the 2.34 manual; the stable Nixpkgs and NixOS manuals track their current stable release. Exact package hooks and system options remain release-sensitive. Local source links describe this project's current composition, while architecture recommendations are inferences rather than upstream requirements.
+The numbered references identify the owning documentation for the mechanisms discussed. The Nix references use the 2.34 manual; the stable Nixpkgs and NixOS manuals track their current stable release. Exact package hooks and system options remain release-sensitive. The composition examples are hypothetical; architecture recommendations are inferences rather than upstream requirements.
 
 1. [Store derivations and deriving paths](https://nix.dev/manual/nix/2.34/store/derivation/): recipe fields, explicit inputs, serialized `.drv` objects, output references, and placeholders.
 2. [Complete store-path calculation](https://nix.dev/manual/nix/2.34/protocols/store-path.html): outer fingerprint, SHA-256 compression, Nix32, type-dependent inner calculation, and fixed-output treatment.

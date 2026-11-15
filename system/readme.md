@@ -2,6 +2,16 @@
 
 This project supplies a reusable desktop module for a locally maintained NixOS configuration. Project-relative commands use the repository root. Initial GH, VLC, and VSCodium files become user-owned preferences with application-specific update workflows. Capturing GUI changes in project sources is a separate authoring step.
 
+## Installation
+
+The [installation procedure](../install.md) covers initial setup and integrates the desktop into a machine-local NixOS flake. Existing installations can use [desktop module integration](#integrate-the-desktop-module).
+
+## Composition and ownership
+
+[flake.nix](../flake.nix) declares external inputs and delegates its output function to [configuration.nix](configuration.nix), which exports reusable modules and checks rather than an installed host. [core.nix](core.nix) owns GNOME, networking, locale, Bash initialization, and manual update policy; [desktop-features.nix](desktop-features.nix) owns shared desktop services and packages. The local host owns identity, accounts, boot, storage, hardware, and `system.stateVersion`. Changes reach the installed system through that local composition.
+
+The [Firefox guide](../settings/firefox/readme.md#composition-and-revision-ownership) traces the exported module graph and external-input argument contract. Generic explanations cover [module imports](../tutorial/nix.md#source-imports-and-module-composition), [option priorities](../tutorial/readme.md#merging-definitions-by-type-and-priority), and [input sharing limits](../tutorial/nix.md#input-sharing-and-its-limits).
+
 ## Integrate the desktop module
 
 The public module repository omits a lockfile. The installer records resolved desktop and Nixpkgs revisions in each machine's `/etc/nixos/flake.lock`; its local `nixpkgs` follows the desktop input. The instructions below apply to another existing local flake with its own independent `nixpkgs` input.
@@ -41,6 +51,8 @@ The complete preset remains `inputs.desktop.nixosModules.default`. A narrower co
 The KeePass policy expects `$HOME/.logins/KeePass.exe`; its launcher limits GTK and PATH changes to that application. The desktop-only composition leaves administration and power management to the local configuration and upstream defaults, and omits the VM service and KeePass launcher/shortcut.
 
 Ordinary machine-local definitions override the default timezone, locale, X keyboard layout, console keymap, and, when the power policy is selected, CPU governor. The Firefox package is also a native default: a local module with `pkgs` can set `programs.firefox.package = pkgs.firefox;` to select Nixpkgs Firefox without the Nightly X11 wrapper. Firefox preference defaults remain enabled.
+
+The generic [package customization explanation](../tutorial/readme.md#package-overrides-and-package-set-overlays) distinguishes changing a package recipe from replacing a module option's default.
 
 ## Native checks
 
@@ -176,6 +188,8 @@ Project updates can change unlocked Firefox defaults; existing profile preferenc
 
 To abandon a failed or unwanted attempt, restore the coherent configuration source and matching lockfile from the independent backup before rebuilding. A known-good boot generation provides a system recovery path, but switching or rolling back generations does not restore mutable user files or databases; those require their own backups.
 
+The [four-state update model](../tutorial/nix.md#11-manual-updates-across-four-kinds-of-state) separates input selection, artifacts, activation, and running data. [Generations and garbage collection](../tutorial/readme.md#10-recovery-and-garbage-collection) explain retention and recovery limits; retaining software does not back up mutable profiles.
+
 ## One-off tools from GitHub flakes
 
 In a normal user terminal, run an exported program once:
@@ -200,7 +214,7 @@ Neither command adds an input to `/etc/nixos/flake.nix` or updates its lockfile.
 
 The system-managed interactive Bash configuration in [system/core.nix](core.nix) applies to new interactive Bash sessions, including Kitty and the VSCodium terminal, after [applying the project](#apply-native-configuration-edits).
 
-Verification in a new terminal uses `type fnm`, `type z`, `node --version`, and the Git branch prompt. Moving between projects with `.node-version` or `.nvmrc` files exercises version switching; `node --version` confirms the result. Switching requires installed versions. [Setup rationale](../readme.md#setup-rationale) describes shell and toolchain ownership.
+Verification in a new terminal uses `type fnm`, `type z`, `node --version`, and the Git branch prompt. Moving between projects with `.node-version` or `.nvmrc` files exercises version switching; `node --version` confirms the result. Switching requires installed versions. The system provides fnm and Bash integration; Node versions and additional user tools remain user-managed. GNOME owns the graphical session, while Linux accounts and system configuration own authority and Bash. Console, Kitty, and VSCodium terminals share this shell setup; Kitty and VSCodium still require a graphical session. Administration uses root authentication through `su`.
 
 Console access is independent of GNOME; actual login and root authentication require a local test:
 
