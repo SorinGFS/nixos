@@ -11,7 +11,6 @@ NixOS 26.05 with GNOME. The module guides document configuration ownership, defa
 - [System configuration, packages and upgrades](system/readme.md)
 - [Integrate the desktop module](system/readme.md#integrate-the-desktop-module)
 - [Select desktop policies](system/readme.md#selecting-policies)
-- [Native configuration checks](system/readme.md#native-checks)
 - [Update the whole system, including Firefox Nightly](system/readme.md#update-the-desktop-input-and-apply-it)
 - [One-off tools from GitHub flakes](system/readme.md#one-off-tools-from-github-flakes)
 - [Unlock and mount data storage](system/readme.md#unlock-and-mount-data-storage)

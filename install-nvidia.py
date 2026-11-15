@@ -31,7 +31,7 @@ def fail(message):
     raise ValueError(message)
 
 
-# Read Linux PCI sysfs numeric IDs only; a test root permits isolated device fixtures.
+# Read Linux PCI sysfs numeric identifiers from the selected device root.
 def probe(root="/sys/bus/pci/devices"):
     devices = []
     # Check each PCI function without requiring a model-name database.

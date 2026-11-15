@@ -24,7 +24,7 @@ Choose the existing partitions and review the preview. Answer `yes` to begin ins
 
 ## Process Model
 
-1. Check that the installer runs as root, required native commands are available, and Linux-reported total RAM is at least 8 GB.
+1. Verify that the installer runs as root, required native commands are available, and Linux-reported total RAM is at least 8 GB.
 2. Display the native hardware preview and block-device inventory, then report detected firmware or the selected firmware override.
 3. Select the bootloader and existing partitions according to the firmware mode. The root partition must be at least 20 GB; select an EFI System Partition for UEFI and the supported BIOS disk layout for BIOS. GRUB can use an optional separate Linux `/boot` partition.
 4. Pin the shared flake inputs and read the target release from pinned Nixpkgs. Choose the default kernel/Mesa graphics option or query a compatible NVIDIA driver against the pinned public module defaults and kernel packages.
@@ -36,4 +36,3 @@ Choose the existing partitions and review the preview. Answer `yes` to begin ins
 10. Set the administrator password at the native `passwd` prompt. After successful completion, leave target filesystems mounted at `/mnt`; reboot manually when ready.
 
 The full public desktop is included at first boot. For later input updates and rebuilds, use the [local configuration workflow](system/readme.md#update-the-desktop-input-and-apply-it). Configuration is documented in [readme.md](readme.md).
-

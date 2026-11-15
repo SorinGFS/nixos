@@ -70,7 +70,7 @@ Application execution and development-shell entry add effects beyond building. A
 <details>
 <summary>Worked solution</summary>
 
-System activation applies the declared SSH configuration; a runtime service check establishes the resulting state. Editing, locking, and building prepare the transition. Activation output and service inspection remain necessary because a failure can leave a partially changed system.
+System activation applies the declared SSH configuration; a runtime service inspection establishes the resulting state. Editing, locking, and building prepare the transition. Activation output and service inspection remain necessary because a failure can leave a partially changed system.
 
 </details>
 
@@ -383,7 +383,7 @@ For the stage 4 module, omitting `pkgs.hello` from its list removes that system-
 <details>
 <summary>Worked solution</summary>
 
-`environment.systemPackages` also selects Hello. Removing its entry from `modules/cli-tools.nix`, rebuilding, and deliberately activating changes the system selection. A fresh shell checks the resulting lookup; an existing temporary shell can expose another copy independently.
+`environment.systemPackages` also selects Hello. Removing its entry from `modules/cli-tools.nix`, rebuilding, and deliberately activating changes the system selection. A fresh shell verifies the resulting lookup; an existing temporary shell can expose another copy independently.
 
 </details>
 
@@ -807,7 +807,7 @@ The inspected machine history identifies actual generation numbers. A recorded k
 
 **Explanation:** A usable system can select a suitable previous generation through rollback. A broken boot can instead use a retained older generation through the installed bootloader's documented menu and keys. Where no retained generation boots, suitable recovery media and official recovery/install guidance apply to the verified storage layout, preserving data and using actual disk identifiers.
 
-After runtime recovery, source and lock repair precede the next ordinary rebuild; otherwise the failed candidate can recur. Errors and logs remain useful diagnostic evidence. Partial activation requires explicit service checks because failure does not imply unchanged runtime state. The [rebuild recovery guidance](https://wiki.nixos.org/wiki/Nixos-rebuild) supplements the primary [NixOS manual](https://nixos.org/manual/nixos/stable/), which takes precedence over dated examples.
+After runtime recovery, source and lock repair precede the next ordinary rebuild; otherwise the failed candidate can recur. Errors and logs remain useful diagnostic evidence. Partial activation requires explicit service inspection because failure does not imply unchanged runtime state. The [rebuild recovery guidance](https://wiki.nixos.org/wiki/Nixos-rebuild) supplements the primary [NixOS manual](https://nixos.org/manual/nixos/stable/), which takes precedence over dated examples.
 
 **Example:** **SYSTEM CHANGE**, from any directory, when the previous system generation is the intended recovery target:
 
@@ -932,16 +932,15 @@ An actual application project normally owns its own flake and lock in the projec
 
 **Expected outcome:** Tools are available without an OS rebuild, and leaving the environment restores the outer shell while preserving project work.
 
-### Building, running, and checking named outputs
+### Building and running named outputs
 
 **Rationale:** Output types determine the applicable consumption interface.
 
-**Explanation:** `nix build` realizes packages. `nix run` prefers an app when present and otherwise runs a suitable package executable. `nix develop` supplies a development/build environment. `nix flake check --no-build` checks output evaluation/schema rather than runtime correctness or every possible test. Without `--no-build`, checks outputs can be built. Even no-build evaluation can fetch, write caches, or trigger import-from-derivation effects. The [`run`](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-run.html) and [`check`](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-check.html) references specify those boundaries.
+**Explanation:** `nix build` realizes packages. `nix run` prefers an app when present and otherwise runs a suitable package executable. `nix develop` supplies a development/build environment. The [`run`](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-run.html) reference specifies its behavior.
 
-**Example:** From any directory: **READ-ONLY with evaluation caveats**, then **BUILD-ONLY**, then **BUILD-ONLY plus application execution**:
+**Example:** From any directory: **BUILD-ONLY**, then **BUILD-ONLY plus application execution**:
 
 ```bash
-nix flake check --no-build --no-update-lock-file path:/etc/nixos
 nix build --no-link --print-out-paths --no-update-lock-file path:/etc/nixos#default
 nix run --no-update-lock-file path:/etc/nixos#default -- --greeting 'One flake, several outputs'
 ```
@@ -1064,7 +1063,7 @@ A reusable NixOS module owns service policy. `overrideAttrs` customizes the sing
 
 **Rationale:** Failure classification preserves the first useful evidence instead of obscuring it through repeated unrelated changes.
 
-**Explanation:** The final meaningful error and its file/line identify a starting point; preceding context explains how evaluation reached it. Syntax errors, missing attributes, unknown options, type mismatches, conflicting definitions, and recursion belong to evaluation. Fetching, compilation, checks, and resource limits can fail after recipes exist. Activation/runtime failures require service logs, access checks, and possibly recovery rather than an arbitrary input refresh.
+**Explanation:** The final meaningful error and its file/line identify a starting point; preceding context explains how evaluation reached it. Syntax errors, missing attributes, unknown options, type mismatches, conflicting definitions, and recursion belong to evaluation. Fetching, compilation, and resource limits can fail after recipes exist. Activation/runtime failures require service logs, access verification, and possibly recovery rather than an arbitrary input refresh.
 
 A trace can name Nixpkgs internals where a module's value was consumed, even when the actionable error belongs to the local module. `--show-trace` expands context without supplying an automatic diagnosis. The [`eval` reference](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-eval.html) and [module semantics](https://nixos.org/manual/nixos/stable/#sec-writing-modules) explain the underlying boundaries.
 
@@ -1084,13 +1083,13 @@ nix eval --show-trace --no-update-lock-file --raw path:/etc/nixos#nixosConfigura
 
 **Explanation:** A known-good source/lock pair and a failure record separate configuration changes from input changes. New source with old pins and unchanged source with new pins test different hypotheses. The established backup/history workflow restores coherent test states. Separate reviewed changes to packages, services, networking, and release branches preserve attribution.
 
-**Bisection** tests roughly half the candidate changes, then narrows to the half associated with failure. Required hardware/base configuration remains intact. Evaluation and build checks precede controlled activation candidates with recovery access. Runtime-only symptoms require state-aware testing in a controlled recovery environment. Failure can arise from an incompatible combination rather than one defective line.
+**Bisection** tests roughly half the candidate changes, then narrows to the half associated with failure. Required hardware/base configuration remains intact. Evaluation and build verification precede controlled activation candidates with recovery access. Runtime-only symptoms require state-aware testing in a controlled recovery environment. Failure can arise from an incompatible combination rather than one defective line.
 
 **Example:** Evaluation fails after three optional modules are added to a previously buildable system. Omitting only the new optional imports retains the installed core; incremental reintroduction isolates the earliest failure. A failed-service symptom instead calls for its logs, because build success and runtime failure implicate different boundaries.
 
-**Expected outcome:** A minimal reproducible source/input difference has an explicit check distinguishing passing and failing candidates.
+**Expected outcome:** A minimal reproducible source/input difference has an explicit criterion distinguishing passing and failing candidates.
 
-### Symptom-based boundary checks
+### Symptom-based boundary inspection
 
 **Rationale:** A bounded checklist connects common symptoms to the ownership distinctions established earlier.
 
@@ -1111,9 +1110,9 @@ nix eval --show-trace --no-update-lock-file --raw path:/etc/nixos#nixosConfigura
 
 The [next-step plan](#appendix-c-next-step-plan) resumes the learning sequence after diagnosis.
 
-**Example:** A concise change record contains the intended result, changed files, input revision, evaluation/build result, activation mode, runtime check, and recovery target. A shareable diagnostic excerpt includes versions, relevant configuration, the exact error, and prior working behavior, with secrets and private details redacted.
+**Example:** A concise change record contains the intended result, changed files, input revision, evaluation/build result, activation mode, runtime inspection, and recovery target. A shareable diagnostic excerpt includes versions, relevant configuration, the exact error, and prior working behavior, with secrets and private details redacted.
 
-**Expected outcome:** Diagnosis has a bounded next check and a minimal, privacy-preserving evidence record suitable for further assistance.
+**Expected outcome:** Diagnosis has a bounded next inspection and a minimal, privacy-preserving evidence record suitable for further assistance.
 
 ### Practice: diagnosing runtime failure before further changes
 
@@ -1276,7 +1275,7 @@ nix store gc
 4. Recovery rehearsal on a noncritical system distinguishes software selection from data restoration.
 5. A reusable module follows a second current consumer of the same policy. Package customization follows recipe inspection, and additional tools follow an understood ownership need.
 
-**Example:** A session plan records the intended result, source files and pins, verification check, activation decision, and recovery target before the change. The owning stage provides the relevant operation and prerequisites.
+**Example:** A session plan records the intended result, source files and pins, verification criterion, activation decision, and recovery target before the change. The owning stage provides the relevant operation and prerequisites.
 
 **Expected outcome:** Incremental maintenance has observable success criteria and a defined recovery boundary for every change.
 
@@ -1309,8 +1308,8 @@ Stable documentation URLs can advance to newer versions. The installed version d
 - Nixpkgs: [stable manual, including `mkShell`](https://nixos.org/manual/nixpkgs/stable/); [26.05 overlays chapter](https://raw.githubusercontent.com/NixOS/nixpkgs/nixos-26.05/doc/using/overlays.chapter.md); [26.05 overrides chapter](https://raw.githubusercontent.com/NixOS/nixpkgs/nixos-26.05/doc/using/overrides.chapter.md).
 - Profile CLI: [add](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-add.html), [list](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-list.html), [remove](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-remove.html), [upgrade](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-upgrade.html), [history](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-history.html), [rollback](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-rollback.html).
 - Tool/build CLI: [shell page (`nix env shell`, with `nix shell` examples)](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-env-shell.html), [build](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-build.html), [develop](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-develop.html), [run](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-run.html), [eval](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-eval.html).
-- Lock/check CLI: [update](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-update.html), [lock](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-lock.html), [check](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-check.html).
+- Lock CLI: [update](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-update.html), [lock](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-lock.html).
 - Cleanup: [GC explanation](https://nix.dev/manual/nix/stable/package-management/garbage-collection.html), [store GC](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-store-gc.html), [collect-garbage](https://nix.dev/manual/nix/stable/command-ref/nix-collect-garbage.html).
 - Secondary official community wiki: [Nixos-rebuild](https://wiki.nixos.org/wiki/Nixos-rebuild), [Flakes](https://wiki.nixos.org/wiki/Flakes). The applicable primary manual takes precedence over dated wiki notes.
 
-**Expected outcome:** A bounded official source list supports checks of syntax, effects, release requirements, and adaptation to the machine's verified configuration.
+**Expected outcome:** A bounded official source list supports verification of syntax, effects, release requirements, and adaptation to the machine's verified configuration.

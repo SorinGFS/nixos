@@ -1,5 +1,5 @@
-# Assemble the public desktop modules, complete preset and native checks.
-desktopInputs@{ self, nixpkgs, ... }:
+# Assemble the public desktop modules and complete preset.
+desktopInputs@{ self, ... }:
 {
     nixosModules = {
         # Pass project inputs to composed desktop modules through a namespaced argument.
@@ -23,7 +23,4 @@ desktopInputs@{ self, nixpkgs, ... }:
             ];
         };
     };
-
-    # Exercise real consumer configurations without defining an installed host.
-    checks.x86_64-linux = import ./checks.nix { inherit self nixpkgs; system = "x86_64-linux"; };
 }

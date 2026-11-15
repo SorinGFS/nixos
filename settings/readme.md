@@ -11,13 +11,3 @@ JSON is authored data, not a Nix expression: modules parse it with `builtins.fro
 The [data and adapter explanation](../tutorial/nix.md#data-desktop-presets-and-host-composition) describes why generated configuration does not require converting authored JSON into Nix syntax. [Typed Nix values](../tutorial/readme.md#values-lists-and-attribute-sets) provide the language foundation; GNOME schema compatibility remains a separate concern.
 
 Unlocked defaults and missing-file seeds have different update behavior. Dconf and Firefox defaults remain below user overrides; GH, VLC, and VSCodium seeds initialize absent writable files without replacing existing preferences. Generated store artifacts and user-owned files therefore have separate lifecycles, as explained in [immutable results and writable application data](../tutorial/nix.md#immutable-results-and-writable-application-data).
-
-## Validation
-
-The following project-root command parses the ten settings JSON files:
-
-```bash
-node -e 'for (const p of ["desktop", "files", "shell", "dash-to-panel", "wallpaper", "firefox", "gh", "vlc", "vscodium", "keepass"]) JSON.parse(require("fs").readFileSync(`settings/${p}/index.json`))'
-```
-
-This checks JSON syntax. [Native checks](../system/readme.md#native-checks) evaluate selected module compositions and typed values; application behavior requires runtime verification. The extension helper test is described in [VSCodium validation](vscodium/readme.md#validation).

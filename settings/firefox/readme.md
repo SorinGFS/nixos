@@ -16,10 +16,9 @@ flake.nix
                                   +--> nixosModules.desktop
                                   +--> nixosModules.default
                                   +--> optional policy modules
-                                  +--> checks.x86_64-linux
 ```
 
-[configuration.nix](../../system/configuration.nix) exports `desktop` with `_module.args.desktopInputs = desktopInputs;` and an import of [desktop.nix](../../system/desktop.nix). That module composes core desktop policy, Firefox, desktop features, and settings. The `default` export combines it with the separately exported root-administration, power, virtualisation, and KeePass policies. Checks construct consumer configurations, not installed host declarations. [System composition](../../system/readme.md#selecting-policies) describes selecting these exports.
+[configuration.nix](../../system/configuration.nix) exports `desktop` with `_module.args.desktopInputs = desktopInputs;` and an import of [desktop.nix](../../system/desktop.nix). That module composes core desktop policy, Firefox, desktop features, and settings. The `default` export combines it with the separately exported root-administration, power, virtualisation, and KeePass policies. [System composition](../../system/readme.md#selecting-policies) describes selecting these exports.
 
 The Firefox module's `desktopInputs` parameter is an explicit dependency contract: it must contain the Nightly input. The exported desktop supplies it through `_module.args`; importing [firefox.nix](../../system/firefox.nix) directly requires supplying that contract too. A source import does not create external dependencies. Passing the whole input set is the current composition's interface, not a requirement for every application module.
 

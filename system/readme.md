@@ -8,7 +8,7 @@ The [installation procedure](../install.md) covers initial setup and integrates 
 
 ## Composition and ownership
 
-[flake.nix](../flake.nix) declares external inputs and delegates its output function to [configuration.nix](configuration.nix), which exports reusable modules and checks rather than an installed host. [core.nix](core.nix) owns GNOME, networking, locale, Bash initialization, and manual update policy; [desktop-features.nix](desktop-features.nix) owns shared desktop services and packages. The local host owns identity, accounts, boot, storage, hardware, and `system.stateVersion`. Changes reach the installed system through that local composition.
+[flake.nix](../flake.nix) declares external inputs and delegates its output function to [configuration.nix](configuration.nix), which exports reusable modules rather than an installed host. [core.nix](core.nix) owns GNOME, networking, locale, Bash initialization, and manual update policy; [desktop-features.nix](desktop-features.nix) owns shared desktop services and packages. The local host owns identity, accounts, boot, storage, hardware, and `system.stateVersion`. Changes reach the installed system through that local composition.
 
 The [Firefox guide](../settings/firefox/readme.md#composition-and-revision-ownership) traces the exported module graph and external-input argument contract. Generic explanations cover [module imports](../tutorial/nix.md#source-imports-and-module-composition), [option priorities](../tutorial/readme.md#merging-definitions-by-type-and-priority), and [input sharing limits](../tutorial/nix.md#input-sharing-and-its-limits).
 
@@ -53,18 +53,6 @@ The KeePass policy expects `$HOME/.logins/KeePass.exe`; its launcher limits GTK 
 Ordinary machine-local definitions override the default timezone, locale, X keyboard layout, console keymap, and, when the power policy is selected, CPU governor. The Firefox package is also a native default: a local module with `pkgs` can set `programs.firefox.package = pkgs.firefox;` to select Nixpkgs Firefox without the Nightly X11 wrapper. Firefox preference defaults remain enabled.
 
 The generic [package customization explanation](../tutorial/readme.md#package-overrides-and-package-set-overlays) distinguishes changing a package recipe from replacing a module option's default.
-
-## Native checks
-
-The flake provides checks for x86_64 Linux. From the repository root, with all new source files tracked in Git:
-
-```bash
-    nix flake check --no-write-lock-file
-```
-
-Git-backed source filtering includes tracked edits and leaves ignored workspace data outside the flake source. New source files must be added to the Git index before this workflow can include them.
-
-The checks evaluate selected consumer compositions, ordinary preference overrides, representative GVariant serialization and the customized VSCodium desktop-entry metadata. Builds compile the generated dconf databases, exercise the editor's bundled SemVer with CLI fixtures, and verify the managed Python VSIX metadata and PET executable header. They may download inputs or build dependencies and populate the Nix store and caches. They leave the running system, user services and extension store unchanged. Dconf compilation checks the generated format; GNOME schema compatibility and application behavior require separate verification. Input revisions resolved without a lock can change between runs; `--no-write-lock-file` preserves the public lockfile policy.
 
 ## Unlock and mount data storage
 
@@ -116,7 +104,7 @@ From the local flake directory, the following evaluation returns the full system
     nix eval --raw "path:.#nixosConfigurations.$(uname -n).config.system.build.toplevel.drvPath"
 ```
 
-Evaluation checks the derivation; activation and application behavior require separate verification. Public source checks: [settings JSON validation](../settings/readme.md#validation) and [VSCodium validation](../settings/vscodium/readme.md#validation).
+Evaluation produces the derivation path; activation and application behavior require separate verification.
 
 Official reference: [NixOS configuration](https://nixos.org/manual/nixos/stable/#sec-changing-config).
 

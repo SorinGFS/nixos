@@ -168,7 +168,7 @@ Thus “Nix hashes the inputs” is a useful first approximation, while “the d
 
 A **content hash** identifies bytes under a specified representation. A **content-addressed** output uses its content in determining its identity. This differs from naming a normal output from the inputs intended to produce it.[3]
 
-| Value | What it identifies or checks | Important distinction |
+| Value | What it identifies or verifies | Important distinction |
 | --- | --- | --- |
 | Ordinary input-addressed output digest | A result identified through its build specification | Does not assert that two executions produced identical bytes |
 | `.drv` store identity | Serialized derivation object | Describes the recipe, not its output's bytes |
@@ -181,7 +181,7 @@ A **Nix Archive**, or **NAR**, serializes a filesystem object such as a director
 
 ### Fixed-output fetching
 
-A **fixed-output derivation** declares its expected output content hash in advance. Fetching a source archive is a common use. Nix checks the produced content against that expectation. Changing a mirror URL while retaining the expected content and other identity-relevant properties need not change the fetched object's output identity.[2], [3]
+A **fixed-output derivation** declares its expected output content hash in advance. Fetching a source archive is a common use. Nix verifies the produced content against that expectation. Changing a mirror URL while retaining the expected content and other identity-relevant properties need not change the fetched object's output identity.[2], [3]
 
 ```text
 mirror A ----+
@@ -284,7 +284,7 @@ Two consequences follow:
 - An unused-looking string can keep a dependency reachable. Stored reference does not prove that a process will use it.
 - A program can need something that static scanning cannot infer. A plugin name obtained from user configuration, a dynamically constructed path, or a host service connection may require explicit packaging or runtime setup.
 
-A recorded reference graph is therefore a practical retention and deployment model, not a semantic completeness proof. Packaging hooks, runtime dependencies, wrapper environment variables, and integration tests address requirements that bytes alone do not explain.[5]
+A recorded reference graph is therefore a practical retention and deployment model, not a semantic completeness proof. Packaging hooks, runtime dependencies, wrapper environment variables, and runtime integration address requirements that bytes alone do not explain.[5]
 
 ### The transitive set
 
@@ -448,7 +448,7 @@ Source selection, build execution, artifact integrity, and runtime security are 
 | --- | --- |
 | Which external source was selected? | Input declaration and lock resolution |
 | Which build was requested? | Derivation and its inputs |
-| Did transferred content match its recorded identity? | Content/archive integrity checks |
+| Did transferred content match its recorded identity? | Content/archive integrity verification |
 | Which producer is accepted? | Cache trust and signatures |
 | Is the application safe and correct? | Source review, tests, vulnerability maintenance, runtime controls |
 
@@ -533,10 +533,9 @@ flake.nix
                                   +--> nixosModules.desktop
                                   +--> nixosModules.default
                                   +--> optional policy modules
-                                  +--> checks for selected platforms
 ```
 
-In this example, `desktop` passes the input set under `_module.args.featureInputs` and imports a desktop module. That module composes shared policy, application integration, desktop features, and settings adapters. A `default` export combines the desktop with separately exported optional policies. Checks can construct consumer configurations to inspect the exports without declaring an installed host.
+In this example, `desktop` passes the input set under `_module.args.featureInputs` and imports a desktop module. That module composes shared policy, application integration, desktop features, and settings adapters. A `default` export combines the desktop with separately exported optional policies.
 
 This is module organization. The name `featureInputs` identifies an explicit argument contract: the application module expects that argument to contain its external input. The exported composition supplies it through `_module.args`. A consumer importing the application module directly must supply that contract too; importing a file does not invent its external dependencies. Modules using the supplied package set and inputs participate in the surrounding composition. Passing a whole input set is one interface choice, not a requirement; a narrower package argument can establish a different contract.
 
