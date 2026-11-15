@@ -4,8 +4,14 @@ let
     baseline = pkgs.writeText "vscodium-extension-baseline.json" (builtins.toJSON (builtins.fromJSON (builtins.readFile ./extensions.json)));
     semver = "${pkgs.vscodium}/lib/vscode/resources/app/node_modules/semver";
     python = pkgs.vscode-extensions.ms-python.python;
+    # Exercise the provisioner against the exact editor-bundled SemVer before deployment.
+    semverCheck = pkgs.runCommand "vscodium-semver-check" { nativeBuildInputs = [ pkgs.nodejs ]; } ''
+        SEMVER_PATH=${semver} node --test ${./.}/extensions.test.js
+        touch "$out"
+    '';
     # Generate a checked VSIX from the Nixpkgs source; refresh it through Nixpkgs updates.
     pythonVsix = pkgs.runCommand "vscodium-python.vsix" { nativeBuildInputs = [ pkgs.python3 ]; } ''
+        test -f ${semverCheck}
         python3 - ${python.src} ${python.version} ${pkgs.stdenv.hostPlatform.parsed.cpu.name} "$out" <<'PY'
         import json
         import shutil

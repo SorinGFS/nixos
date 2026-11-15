@@ -1,14 +1,5 @@
-# Configure desktop services, the VM backend, and terminal-font dependencies.
+# Configure desktop services and terminal-font dependencies.
 { pkgs, ... }:
-let
-    # Restrict GTK2 lookup to KeePass and strip CR from the generated launcher.
-    keepass-local = pkgs.writeShellScriptBin "keepass-local" (pkgs.lib.replaceStrings [ "\r" ] [ "" ] ''
-        export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.gtk2 pkgs.glib pkgs.pango pkgs.atk pkgs.gdk-pixbuf pkgs.cairo ]}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-        # Make KeePass auto-type tools available without changing the system PATH.
-        export PATH="${pkgs.lib.makeBinPath [ pkgs.xdotool ]}:$PATH"
-        exec ${pkgs.mono}/bin/mono "$HOME/.logins/KeePass.exe" "$@"
-    '');
-in
 {
     # Use GNOME's existing portals for optional Flatpak applications.
     services.flatpak.enable = true;
@@ -36,16 +27,6 @@ in
     # Prefer Files for opening folders.
     xdg.mime.defaultApplications."inode/directory" = [ "nautilus.desktop" "org.gnome.Nautilus.desktop" ];
 
-    # Keep the desktop awake and use the CPU performance governor without changing thermal safeguards.
-    systemd.sleep.settings.Sleep = {
-        AllowSuspend = false;
-        AllowHibernation = false;
-        AllowHybridSleep = false;
-        AllowSuspendThenHibernate = false;
-    };
-    powerManagement.cpuFreqGovernor = "performance";
-    services.power-profiles-daemon.enable = false;
-
     # Keep the audio backend independently of remote-desktop support.
     services.pipewire.enable = true;
 
@@ -70,10 +51,6 @@ in
         pinentryPackage = pkgs.pinentry-gnome3;
     };
 
-    # Enable local VM management without additional SSH proxy configuration.
-    virtualisation.libvirtd.enable = true;
-    virtualisation.libvirtd.sshProxy = false;
-    programs.virt-manager.enable = true;
     # Retain loader support for fnm's downloaded Node binaries.
     programs.nix-ld.enable = true;
 
@@ -82,7 +59,7 @@ in
     fonts.packages = [ pkgs.nerd-fonts.meslo-lg ];
     environment.systemPackages = with pkgs; [
         jq git gh gnumake python3 mono vlc qbittorrent vscodium ripgrep zoxide fnm
-        gnupg curl coreutils unzip xz nautilus keepass-local kitty tmux wl-clipboard
+        gnupg curl coreutils unzip xz nautilus kitty tmux wl-clipboard
         gnomeExtensions.dash-to-panel
     ];
 }

@@ -26,7 +26,8 @@ function exercise(snapshots, options = {}) {
             fs.writeFileSync(path.join(extension, 'python-env-tools', 'bin', 'pet'), header, { mode: options.nonExecutable ? 0o600 : 0o700 });
         }
         fs.writeFileSync(baseline, JSON.stringify(Object.hasOwn(options, 'baseline') ? options.baseline : { 'example.extension': '1.2.3' }));
-        fs.writeFileSync(cli, `#!/usr/bin/env node
+        // Use the running Node executable so the CLI fixture also works in a Nix sandbox.
+        fs.writeFileSync(cli, `#!${process.execPath}
 const fs = require('node:fs');
 const state = process.env.TEST_STATE;
 const data = JSON.parse(fs.readFileSync(state));

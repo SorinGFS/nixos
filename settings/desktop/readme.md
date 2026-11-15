@@ -38,7 +38,7 @@ gsettings set org.gnome.desktop.session idle-delay 0
 gsettings set org.gnome.settings-daemon.plugins.power idle-dim true
 ```
 
-Edits to `settings/desktop/index.json` change defaults for future users after [project activation](../../system/readme.md#apply-native-configuration-edits). The defaults are applied through the user dconf profile. [Files](../files/readme.md), [GNOME Shell](../shell/readme.md), and [Dash to Panel](../dash-to-panel/readme.md) have separate source files; the [wallpaper guide](../wallpaper/readme.md) covers its asset and filename.
+Edits to `settings/desktop/index.json` change defaults for future users after [project activation](../../system/readme.md#apply-native-configuration-edits). The defaults are applied through the user dconf profile. The KeePass shortcut belongs to the optional KeePass policy and its [source](../keepass/index.json). [Files](../files/readme.md), [GNOME Shell](../shell/readme.md), and [Dash to Panel](../dash-to-panel/readme.md) have separate source files; the [wallpaper guide](../wallpaper/readme.md) covers its asset and filename.
 
 Capturing GUI changes in project sources is a separate authoring step. Existing user values override defaults; individual `gsettings set` commands change the current session. Privacy configuration carries preference values exclusively; recent-file and usage data remain local.
 

@@ -33,12 +33,6 @@
     "org/gnome/settings-daemon/plugins/power/idle-dim": true,
     "org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type": "nothing",
     "org/gnome/settings-daemon/plugins/power/sleep-inactive-battery-type": "suspend",
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings": [
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-    ],
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding": "<Control><Alt>a",
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command": "keepass-local --auto-type",
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name": "KeePass Auto-Type",
     "org/gnome/desktop/notifications/show-banners": false,
     "org/gnome/desktop/notifications/show-in-lock-screen": false
 }

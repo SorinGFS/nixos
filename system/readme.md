@@ -25,7 +25,34 @@ In the existing local `nixpkgs.lib.nixosSystem` definition, add this entry to it
     inputs.desktop.nixosModules.default
 ```
 
-The local configuration retains its existing hostname, user accounts, hardware imports, bootloader, filesystems, and `system.stateVersion`. The shared module configures NetworkManager and libvirtd and disables sudo; local account definitions should grant the intended operators `wheel`, `networkmanager`, and `libvirtd` group membership as appropriate. Root authentication through `su` requires a locally managed root password. Select filesystem mount ownership in the local configuration.
+The local configuration retains its existing hostname, user accounts, hardware imports, bootloader, filesystems, and `system.stateVersion`. The complete preset configures NetworkManager and libvirtd, disables sudo and sleep, defaults to the performance CPU governor, and supplies the external KeePass launcher and shortcut. Local account definitions grant the intended operators `wheel`, `networkmanager`, and `libvirtd` group membership as appropriate. Root authentication through `su` requires a locally managed root password and working root access before activating this preset. Filesystem mount ownership remains local.
+
+### Selecting policies
+
+The complete preset remains `inputs.desktop.nixosModules.default`. A narrower composition uses `inputs.desktop.nixosModules.desktop` instead, retaining existing machine modules. It includes GNOME, Firefox, shared packages and unlocked preference defaults. Additional entries in the same `modules` list select policies independently:
+
+| Additional module | Policy |
+| --- | --- |
+| `inputs.desktop.nixosModules.root-administration` | Root-authenticated administration through `su`, with sudo disabled. |
+| `inputs.desktop.nixosModules.power` | Sleep disabled, power-profiles-daemon disabled, and a performance governor default. |
+| `inputs.desktop.nixosModules.virtualisation` | Libvirt and virt-manager enabled, with the libvirt SSH proxy disabled. |
+| `inputs.desktop.nixosModules.keepass` | External KeePass launcher and its unlocked GNOME shortcut. |
+
+The KeePass policy expects `$HOME/.logins/KeePass.exe`; its launcher limits GTK and PATH changes to that application. The desktop-only composition leaves administration and power management to the local configuration and upstream defaults, and omits the VM service and KeePass launcher/shortcut.
+
+Ordinary machine-local definitions override the default timezone, locale, X keyboard layout, console keymap, and, when the power policy is selected, CPU governor. The Firefox package is also a native default: a local module with `pkgs` can set `programs.firefox.package = pkgs.firefox;` to select Nixpkgs Firefox without the Nightly X11 wrapper. Firefox preference defaults remain enabled.
+
+## Native checks
+
+The flake provides checks for x86_64 Linux. From the repository root, with all new source files tracked in Git:
+
+```bash
+    nix flake check --no-write-lock-file
+```
+
+Git-backed source filtering includes tracked edits and leaves ignored workspace data outside the flake source. New source files must be added to the Git index before this workflow can include them.
+
+The checks evaluate selected consumer compositions, ordinary preference overrides, representative GVariant serialization and the customized VSCodium desktop-entry metadata. Builds compile the generated dconf databases, exercise the editor's bundled SemVer with CLI fixtures, and verify the managed Python VSIX metadata and PET executable header. They may download inputs or build dependencies and populate the Nix store and caches. They leave the running system, user services and extension store unchanged. Dconf compilation checks the generated format; GNOME schema compatibility and application behavior require separate verification. Input revisions resolved without a lock can change between runs; `--no-write-lock-file` preserves the public lockfile policy.
 
 ## Unlock and mount data storage
 
@@ -107,13 +134,47 @@ Official references: [package management](https://nixos.org/manual/nixos/stable/
 
 ## Update the desktop input and apply it
 
-From any directory, run this standalone command. Enter the root password when prompted; it updates all local flake inputs, including the GitHub desktop input and its dependencies, in the machine-local `/etc/nixos/flake.lock`, then builds and activates the machine configuration. Local hardware, accounts, storage, and boot settings remain defined by that machine's configuration.
+This is the whole-system update procedure, including Firefox Nightly. `system.autoUpgrade.enable = false;` disables native scheduled unattended system upgrades so the operator chooses a maintenance window, activation, and any required reboot. Manual flake updates and rebuilds remain available; the setting does not permanently lock package versions.
 
-```bash
-    cd /etc/nixos && su -c 'nix flake update && nixos-rebuild switch --flake path:.'
-```
+The project's default Nixpkgs input targets the `nixos-26.05` release branch; the machine-local `/etc/nixos/flake.lock` records the resolved snapshots of that machine's configured inputs. Refreshing Nixpkgs advances all selected system packages to the versions and patches provided by the refreshed snapshot, without editing individual package versions. A rebuild with an unchanged lock uses the locked revisions.
 
-Shared-source changes become available through the GitHub `desktop` input after publication.
+Firefox Nightly comes from the `firefox-nightly` flake input, nested under `desktop` in the machine configuration. The same all-input refresh advances its packaging source alongside Nixpkgs, so an available newer Nightly build is included in the same whole-system update and activation.
+
+Updates follow the configured release and packaging sources. Security maintenance depends on a supported release and fixes available in those sources. Moving to a newer release branch is a separate, deliberate configuration change guided by its release notes.
+
+Local hardware, accounts, storage, boot settings, and `system.stateVersion` remain owned by the machine configuration. Shared-source edits in an unpublished checkout become available to the GitHub `desktop` input only after publication; refreshing that input retrieves published source, not local checkout edits.
+
+Run each command from any directory in the installed session. Commands using `su -c` request the root password.
+
+1. Before updating, save work, make an independent backup of the coherent local configuration source and its matching `flake.lock`, and confirm a known-good boot generation and a usable recovery path. Keep credentials outside flake sources: source files copied into the Nix store can be readable by other local users, and published source is public. Then refresh all inputs:
+
+    ```bash
+    cd /etc/nixos && su -c 'nix flake update'
+    ```
+
+    This refreshes all local flake inputs, including the GitHub desktop input, Nixpkgs, and the nested Nightly packaging input. It writes the machine-local `flake.lock` and may download source into the Nix store and caches; it does not activate a system generation.
+
+2. Build the updated system as the normal user:
+
+    ```bash
+    cd /etc/nixos && nixos-rebuild build --flake path:. --no-link
+    ```
+
+    This creates the system build in the Nix store and may download or build dependencies. It does not activate the system; `--no-link` avoids a local `result` symlink. A successful build establishes buildability, not runtime correctness. If the build fails, the new generation has not been applied, but the lockfile has already changed.
+
+3. After a successful build, review the intended source, lockfile, and package changes. Only when ready to allow runtime changes, activate:
+
+    ```bash
+    cd /etc/nixos && su -c 'nixos-rebuild switch --flake path:.'
+    ```
+
+    With unchanged source and lock, activation can reuse the completed build. Switching may restart services and interrupt work; activation can partially fail, so inspect its result before continuing.
+
+4. Fully quit and restart Firefox to run the newly installed browser version. Reboot manually when required to use changed kernel, driver, initrd, or other boot-time components. Choose these interruptions within the maintenance window.
+
+Project updates can change unlocked Firefox defaults; existing profile preferences continue to take precedence. Starting the new browser can migrate profile data, which a system rollback does not restore. User-managed toolchains and separately installed applications retain their own update workflows.
+
+To abandon a failed or unwanted attempt, restore the coherent configuration source and matching lockfile from the independent backup before rebuilding. A known-good boot generation provides a system recovery path, but switching or rolling back generations does not restore mutable user files or databases; those require their own backups.
 
 ## One-off tools from GitHub flakes
 
@@ -185,7 +246,7 @@ FFmpeg, ImageMagick, and Pandoc remain planned additions. Pandoc is planned as a
 
 ## Launch the existing KeePass application with GTK 2 libraries
 
-The native configuration provides `keepass-local` for the existing `$HOME/.logins/KeePass.exe`. The launcher becomes available after [project activation](#apply-native-configuration-edits) and runs as the normal user:
+The complete preset and the separately selected KeePass policy provide `keepass-local` for the existing `$HOME/.logins/KeePass.exe`. The launcher becomes available after [project activation](#apply-native-configuration-edits) and runs as the normal user:
 
 ```bash
     keepass-local
@@ -195,4 +256,4 @@ The launcher supplies Nix-managed GTK 2 libraries only to that Mono process, pre
 
 This targets the GTK color-scheme warning; Auto-Type compatibility is a separate concern. Runtime verification remains pending and requires checking the warning and appearance after launch.
 
-Source: [system/desktop-features.nix](desktop-features.nix).
+Source: [system/keepass.nix](keepass.nix).

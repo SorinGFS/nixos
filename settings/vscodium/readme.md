@@ -41,6 +41,8 @@ Desktop-launch verification follows [project activation](../../system/readme.md#
 
 ## Validation
 
+The system build checks the editor-bundled SemVer library with the helper tests before producing the managed VSIX. The [native checks](../../system/readme.md#native-checks) also build this guard. The tests use disposable CLI fixtures; they do not run the editor or provision extensions.
+
 From the repository root, the helper test builds its VSCodium package dependency from the local flake at `/etc/nixos` and runs separately from system building and activation:
 
 ```bash
