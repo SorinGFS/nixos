@@ -8,7 +8,7 @@ The [installation procedure](../install.md) covers initial setup and integrates 
 
 ## Composition and ownership
 
-[flake.nix](../flake.nix) declares external inputs and delegates its output function to [configuration.nix](configuration.nix), which exports reusable modules rather than an installed host. [core.nix](core.nix) owns GNOME, networking, locale, Bash initialization, and manual update policy; [desktop-features.nix](desktop-features.nix) owns shared desktop services and packages. The local host owns identity, accounts, boot, storage, hardware, and `system.stateVersion`. Changes reach the installed system through that local composition.
+[flake.nix](../flake.nix) declares external inputs and delegates its output function to [configuration.nix](configuration.nix), which exports reusable modules rather than an installed host. [core.nix](core.nix) owns GNOME, networking, and Bash initialization; [desktop-features.nix](desktop-features.nix) owns shared desktop services and packages. The local host owns timezone, locale, X keyboard layout, console keymap, unattended-upgrade policy, identity, accounts, boot, storage, hardware, and `system.stateVersion`. Changes reach the installed system through that local composition.
 
 The [Firefox guide](../settings/firefox/readme.md#composition-and-revision-ownership) traces the exported module graph and external-input argument contract. Generic explanations cover [module imports](../tutorial/nix.md#source-imports-and-module-composition), [option priorities](../tutorial/readme.md#merging-definitions-by-type-and-priority), and [input sharing limits](../tutorial/nix.md#input-sharing-and-its-limits).
 
@@ -50,7 +50,7 @@ The complete preset remains `inputs.desktop.nixosModules.default`. A narrower co
 
 The KeePass policy expects `$HOME/.logins/KeePass.exe`; its launcher limits GTK and PATH changes to that application. The desktop-only composition leaves administration and power management to the local configuration and upstream defaults, and omits the VM service and KeePass launcher/shortcut.
 
-Ordinary machine-local definitions override the default timezone, locale, X keyboard layout, console keymap, and, when the power policy is selected, CPU governor. The Firefox package is also a native default: a local module with `pkgs` can set `programs.firefox.package = pkgs.firefox;` to select Nixpkgs Firefox without the Nightly X11 wrapper. Firefox preference defaults remain enabled.
+The host configuration owns timezone, locale, X keyboard layout, and console keymap choices; machine-local definitions can also override the CPU governor default when the power policy is selected. The Firefox package is a native default: a local module with `pkgs` can set `programs.firefox.package = pkgs.firefox;` to select Nixpkgs Firefox without the Nightly X11 wrapper. Firefox preference defaults remain enabled.
 
 The generic [package customization explanation](../tutorial/readme.md#package-overrides-and-package-set-overlays) distinguishes changing a package recipe from replacing a module option's default.
 
@@ -118,6 +118,24 @@ Where the local configuration uses separate `/boot` and `/boot/efi` filesystems,
 
 Bootloader and kernel payloads occupy boot storage; Nix store closures and retained rollback generations consume store space within the same installation. This inspection reports usage and leaves generations and store contents intact.
 
+## Garbage collection and rollback retention
+
+Ordinary garbage collection removes unreferenced store objects while preserving retained profile generations and their rollback history. Both commands below work from any directory and request the root password through `su`.
+
+```bash
+    su -c 'nix-collect-garbage'
+```
+
+The following removes every other generation from only the system profile, keeping its current generation, then collects unreferenced packages and dependencies. Rollback to the removed system generations is lost.
+
+```bash
+    su -c 'nix-env --profile /nix/var/nix/profiles/system --delete-generations old && nix-collect-garbage'
+```
+
+Other roots can still retain store objects, so the amount of space reclaimed is not guaranteed.
+
+Official documentation: [garbage collection](https://nix.dev/manual/nix/2.34/command-ref/nix-collect-garbage.html), [profile generation deletion](https://nix.dev/manual/nix/2.34/command-ref/nix-env/delete-generations.html).
+
 ## Install or uninstall a native application
 
 [NixOS package search](https://search.nixos.org/packages) identifies package attributes. For machine-specific packages, edit `environment.systemPackages` in the local configuration, with `pkgs` available to the module, then [apply the local edit](#apply-native-configuration-edits).
@@ -134,7 +152,7 @@ Official references: [package management](https://nixos.org/manual/nixos/stable/
 
 ## Update the desktop input and apply it
 
-This is the whole-system update procedure, including Firefox Nightly. `system.autoUpgrade.enable = false;` disables native scheduled unattended system upgrades so the operator chooses a maintenance window, activation, and any required reboot. Manual flake updates and rebuilds remain available; the setting does not permanently lock package versions.
+This is the whole-system update procedure, including Firefox Nightly. The host configuration may set `system.autoUpgrade.enable = false`; the NixOS upstream default is also `false`, and the shared module does not select a scheduled-upgrade policy. Manual flake updates and rebuilds remain available; disabling scheduled upgrades does not permanently lock package versions.
 
 The project's default Nixpkgs input targets the `nixos-26.05` release branch; the machine-local `/etc/nixos/flake.lock` records the resolved snapshots of that machine's configured inputs. Refreshing Nixpkgs advances all selected system packages to the versions and patches provided by the refreshed snapshot, without editing individual package versions. A rebuild with an unchanged lock uses the locked revisions.
 

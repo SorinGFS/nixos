@@ -15,6 +15,7 @@ NixOS 26.05 with GNOME. The module guides document configuration ownership, defa
 - [One-off tools from GitHub flakes](system/readme.md#one-off-tools-from-github-flakes)
 - [Unlock and mount data storage](system/readme.md#unlock-and-mount-data-storage)
 - [Boot storage inspection](system/readme.md#inspect-boot-storage)
+- [Garbage collection and rollback retention](system/readme.md#garbage-collection-and-rollback-retention)
 - [Bash and console access](system/readme.md#bash-and-console-access)
 - [Kitty terminal](system/readme.md#kitty-terminal-preferences)
 - [tmux sessions](system/readme.md#tmux-sessions)

@@ -1,5 +1,5 @@
-# Configure shared GNOME, networking, locale, Bash and manual updates.
-{ lib, pkgs, ... }:
+# Configure shared GNOME, networking, and Bash defaults.
+{ pkgs, ... }:
 {
     # Enable the flake commands used to build and update this configuration.
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -7,12 +7,6 @@
     nix.settings.auto-optimise-store = true;
     # Connect the desktop through NetworkManager.
     networking.networkmanager.enable = true;
-
-    # Keep locale and keyboard choices portable.
-    time.timeZone = lib.mkDefault "Europe/Bucharest";
-    i18n.defaultLocale = lib.mkDefault "en_US.UTF-8";
-    services.xserver.xkb.layout = lib.mkDefault "us";
-    console.keyMap = lib.mkDefault "us";
 
     # Start the GNOME graphical desktop.
     services.displayManager.gdm.enable = true;
@@ -47,7 +41,4 @@
             eval "$(zoxide init bash)"
         fi
     '';
-
-    # Keep system updates under manual operator control.
-    system.autoUpgrade.enable = false;
 }
