@@ -2,7 +2,7 @@
 
 The module enables GNOME and GDM, disables the optional core app suite and selected services, and imports its Shell and wallpaper children, [Meslo](../../fonts/readme.md) and dconf. See [NixOS GNOME](https://nixos.org/manual/nixos/stable/#sec-gnome-enable).
 
-[index.json](index.json) supplies unlocked user defaults. Its adapter preserves unsigned idle and privacy ages and explicitly types keyboard source tuples and options. User keyboard settings are distinct from the host's X keyboard layout. Existing user values override defaults; GUI changes must be captured separately in source if desired. Privacy values are preferences; recent-file and usage data remain user-owned.
+[default.nix](default.nix) supplies unlocked user defaults as schema attributes. It explicitly types unsigned idle and privacy ages and keyboard source tuples and options. User keyboard settings are distinct from the host's X keyboard layout. Existing user values override defaults; GUI changes must be captured separately in source if desired. Privacy values are preferences; recent-file and usage data remain user-owned.
 
 Inspect current values as the logged-in user:
 
@@ -40,7 +40,7 @@ gsettings set org.gnome.desktop.session idle-delay 0
 gsettings set org.gnome.settings-daemon.plugins.power idle-dim true
 ```
 
-Apply source changes through the [local update workflow](../../readme.md#apply-local-configuration-and-update-the-whole-system). The [adapter guide](../../services/dconf/readme.md) explains typed defaults. See [GSettings CLI](https://github.com/GNOME/glib/blob/main/docs/reference/gio/gsettings.rst).
+Apply source changes through the [local update workflow](../../readme.md#apply-local-configuration-and-update-the-whole-system). The [dconf backend guide](../../services/dconf/readme.md) links to typed settings owners. See [GSettings CLI](https://github.com/GNOME/glib/blob/main/docs/reference/gio/gsettings.rst).
 
 ## Display scaling
 

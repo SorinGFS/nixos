@@ -1,15 +1,8 @@
 # Enable GNOME services and supply explicitly typed desktop preferences.
 { lib, pkgs, ... }:
 let
-    values = builtins.fromJSON (builtins.readFile ./index.json);
-    group = import ../../services/dconf/group.nix { inherit lib; };
     g = lib.gvariant;
-    typed = values // {
-        "org/gnome/desktop/session/idle-delay" = g.mkUint32 values."org/gnome/desktop/session/idle-delay";
-        "org/gnome/desktop/privacy/old-files-age" = g.mkUint32 values."org/gnome/desktop/privacy/old-files-age";
-        "org/gnome/desktop/input-sources/sources" = if values."org/gnome/desktop/input-sources/sources" == [ ] then g.mkEmptyArray (g.type.tupleOf [ g.type.string g.type.string ]) else g.mkArray (map g.mkTuple values."org/gnome/desktop/input-sources/sources");
-        "org/gnome/desktop/input-sources/xkb-options" = if values."org/gnome/desktop/input-sources/xkb-options" == [ ] then g.mkEmptyArray g.type.string else g.mkArray values."org/gnome/desktop/input-sources/xkb-options";
-    };
+    sources = [ [ "xkb" "us" ] ];
 in
 {
     imports = [
@@ -36,5 +29,49 @@ in
     services.gnome.gnome-browser-connector.enable = false;
 
     # Apply typed, unlocked user defaults.
-    programs.dconf.profiles.user.databases = [ { settings = group typed; } ];
+    programs.dconf.profiles.user.databases = [ {
+        settings = {
+            "org/gnome/desktop/interface" = {
+                accent-color = "blue";
+                clock-show-seconds = false;
+                clock-show-weekday = true;
+                color-scheme = "prefer-dark";
+                enable-animations = false;
+                monospace-font-name = "MesloLGM Nerd Font Mono 11";
+            };
+            "org/gnome/desktop/session".idle-delay = g.mkUint32 0;
+            "org/gnome/desktop/screensaver".lock-enabled = false;
+            "org/gnome/desktop/input-sources" = {
+                sources = if sources == [ ] then g.mkEmptyArray (g.type.tupleOf [ g.type.string g.type.string ]) else g.mkArray (map g.mkTuple sources);
+                xkb-options = g.mkEmptyArray g.type.string;
+            };
+            "org/gnome/desktop/peripherals/mouse".accel-profile = "flat";
+            "org/gnome/desktop/peripherals/touchpad".two-finger-scrolling-enabled = true;
+            "org/gnome/desktop/privacy" = {
+                old-files-age = g.mkUint32 0;
+                remember-app-usage = false;
+                remember-recent-files = false;
+                remove-old-trash-files = true;
+            };
+            "org/gnome/desktop/search-providers" = {
+                disable-external = true;
+                sort-order = [ "org.gnome.Settings.desktop" "org.gnome.Contacts.desktop" "org.gnome.Nautilus.desktop" ];
+            };
+            "org/gnome/gnome-session".logout-prompt = false;
+            "org/gnome/system/location".enabled = false;
+            "org/gnome/settings-daemon/plugins/color" = {
+                night-light-enabled = false;
+                night-light-schedule-automatic = false;
+            };
+            "org/gnome/settings-daemon/plugins/power" = {
+                idle-dim = true;
+                sleep-inactive-ac-type = "nothing";
+                sleep-inactive-battery-type = "suspend";
+            };
+            "org/gnome/desktop/notifications" = {
+                show-banners = false;
+                show-in-lock-screen = false;
+            };
+        };
+    } ];
 }

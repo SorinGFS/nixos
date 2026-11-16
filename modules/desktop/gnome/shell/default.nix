@@ -1,10 +1,17 @@
 # Restore favorites, enabled extensions and the explicitly ordered app grid.
 { lib, ... }:
 let
-    values = builtins.fromJSON (builtins.readFile ./index.json);
     g = lib.gvariant;
-    apps = values."org/gnome/shell/app-picker-layout";
-    # The app grid is an array of dictionaries whose positions are variants.
+    apps = [
+        "org.gnome.Extensions.desktop"
+        "nixos-manual.desktop"
+        "nvidia-settings.desktop"
+        "org.qbittorrent.qBittorrent.desktop"
+        "virt-manager.desktop"
+        "mpv.desktop"
+        "org.gnome.Settings.desktop"
+    ];
+    # GNOME expects each page as a dictionary of app IDs to variant position dictionaries.
     page = if apps == [ ] then g.mkEmptyArray (g.type.dictionaryEntryOf g.type.string g.type.variant) else g.mkArray (lib.imap0 (position: app:
         g.mkDictionaryEntry app (g.mkVariant (g.mkArray [
             (g.mkDictionaryEntry "position" (g.mkVariant (g.mkInt32 position)))
@@ -14,8 +21,12 @@ in
 {
     imports = [ ./dash-to-panel ];
     programs.dconf.profiles.user.databases = [ {
-        settings = (import ../../../services/dconf/group.nix { inherit lib; }) (values // {
-            "org/gnome/shell/app-picker-layout" = g.mkArray [ page ];
-        });
+        settings = {
+            "org/gnome/shell" = {
+                enabled-extensions = [ "dash-to-panel@jderose9.github.com" ];
+                favorite-apps = [ "kitty.desktop" "org.gnome.Nautilus.desktop" "firefox-nightly.desktop" "codium.desktop" ];
+                app-picker-layout = g.mkArray [ page ];
+            };
+        };
     } ];
 }
