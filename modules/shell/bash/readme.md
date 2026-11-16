@@ -1,0 +1,5 @@
+# Bash
+
+[default.nix](default.nix) imports [integrations.nix](integrations.nix); new interactive Bash sessions receive the NixOS colored prompt and title with a Git branch, plus fnm and zoxide initialization. The integration imports nix-ld for fnm-downloaded binaries; installed Node versions remain user-managed. New-terminal inspection uses `type fnm`, `type z`, and `node --version`; project `.node-version` or `.nvmrc` selection requires the version to be installed.
+
+Console access is independent of GNOME. Save work before Ctrl+Alt+F3; log in and use `su` with the root password to verify recovery access, then exit both shells and return to the graphical virtual terminal. Verify authentication on the actual host; investigate failures from the available graphical session before relying on console recovery. See [NixOS configuration syntax](https://nixos.org/manual/nixos/stable/#sec-configuration-syntax) and [VSCodium launch environments](../../applications/vscodium/readme.md#desktop-launch-environment).

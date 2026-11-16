@@ -1,0 +1,5 @@
+# Kitty terminal
+
+Kitty is installed with system XDG defaults: MesloLGM Nerd Font Mono 11, beam cursor, selection copied to clipboard, no close confirmation, and right-click paste when Kitty controls mouse input. Closing a window or tab can immediately terminate running commands. Mouse-grabbing applications receive right-click; Shift+left-drag enables terminal selection. Blinking follows system settings and applications may override cursor shape. The desktop also supplies wl-clipboard.
+
+The shared [Meslo font](../../fonts/readme.md) is imported here and by GNOME. The terminal-exec child selects Kitty for default and GNOME callers, although applications can choose their own terminal. User config or `KITTY_CONFIG_DIRECTORY` can take precedence over the system file. Apply changes through the [local workflow](../../readme.md#apply-local-configuration-and-update-the-whole-system) and open a new window. See [NixOS configuration syntax](https://nixos.org/manual/nixos/stable/#sec-configuration-syntax), [Kitty configuration](https://sw.kovidgoyal.net/kitty/conf/) and [lookup](https://sw.kovidgoyal.net/kitty/invocation/).
