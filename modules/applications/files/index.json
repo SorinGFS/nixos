@@ -1,22 +1,26 @@
 {
     "org/gnome/nautilus/preferences/default-folder-viewer": "list-view",
+    "org/gnome/nautilus/preferences/date-time-format": "detailed",
     "org/gnome/nautilus/list-view/default-column-order": [
         "name",
-        "size",
         "type",
+        "permissions",
         "owner",
         "group",
-        "permissions",
-        "date_modified",
         "date_accessed",
         "date_created",
+        "date_modified",
+        "size",
         "recency",
         "detailed_type"
     ],
     "org/gnome/nautilus/list-view/default-visible-columns": [
         "name",
-        "size",
-        "date_modified"
+        "permissions",
+        "owner",
+        "group",
+        "date_modified",
+        "size"
     ],
     "org/gnome/nautilus/list-view/use-tree-view": true
 }
