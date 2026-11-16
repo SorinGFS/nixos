@@ -33,8 +33,9 @@ in
         settings = {
             "org/gnome/desktop/interface" = {
                 accent-color = "blue";
+                clock-show-date = true;
                 clock-show-seconds = false;
-                clock-show-weekday = true;
+                clock-show-weekday = false;
                 color-scheme = "prefer-dark";
                 enable-animations = false;
                 monospace-font-name = "MesloLGM Nerd Font Mono 11";
@@ -62,6 +63,7 @@ in
             "org/gnome/settings-daemon/plugins/color" = {
                 night-light-enabled = false;
                 night-light-schedule-automatic = false;
+                night-light-temperature = g.mkUint32 4459;
             };
             "org/gnome/settings-daemon/plugins/power" = {
                 idle-dim = true;

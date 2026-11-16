@@ -34,22 +34,23 @@ in
                 panel-element-positions = builtins.toJSON {
                     "0" = [
                         { element = "showAppsButton"; visible = true; position = "stackedTL"; }
-                        { element = "activitiesButton"; visible = false; position = "stackedTL"; }
-                        { element = "leftBox"; visible = true; position = "stackedTL"; }
                         { element = "taskbar"; visible = true; position = "stackedTL"; }
-                        { element = "centerBox"; visible = true; position = "stackedBR"; }
-                        { element = "rightBox"; visible = true; position = "stackedBR"; }
+                        { element = "activitiesButton"; visible = false; position = "stackedTL"; }
+                        { element = "leftBox"; visible = false; position = "stackedTL"; }
+                        { element = "centerBox"; visible = false; position = "stackedTL"; }
+                        { element = "rightBox"; visible = false; position = "stackedTL"; }
                         { element = "systemMenu"; visible = true; position = "stackedBR"; }
                         { element = "dateMenu"; visible = true; position = "stackedBR"; }
                         { element = "desktopButton"; visible = true; position = "stackedBR"; }
                     ];
                 };
-                panel-lengths = builtins.toJSON { };
+                panel-lengths = builtins.toJSON { "0" = 100; };
                 panel-positions = builtins.toJSON { "0" = "RIGHT"; };
                 panel-side-margins = g.mkInt32 0;
                 panel-sizes = builtins.toJSON { "0" = 64; };
                 panel-top-bottom-margins = g.mkInt32 0;
                 status-icon-padding = g.mkInt32 4;
+                stockgs-panelbtn-click-only = true;
                 trans-bg-color = "#a51d2d";
                 trans-panel-opacity = g.mkDouble 0.0;
                 trans-use-custom-bg = false;

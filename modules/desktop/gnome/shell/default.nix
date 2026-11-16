@@ -3,12 +3,13 @@
 let
     g = lib.gvariant;
     apps = [
-        "org.gnome.Extensions.desktop"
-        "nixos-manual.desktop"
-        "nvidia-settings.desktop"
-        "org.qbittorrent.qBittorrent.desktop"
-        "virt-manager.desktop"
         "mpv.desktop"
+        "org.qbittorrent.qBittorrent.desktop"
+        "org.gnome.Extensions.desktop"
+        "virt-manager.desktop"
+        "nvidia-settings.desktop"
+        "xterm.desktop"
+        "nixos-manual.desktop"
         "org.gnome.Settings.desktop"
     ];
     # GNOME expects each page as a dictionary of app IDs to variant position dictionaries.
