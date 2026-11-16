@@ -1,6 +1,6 @@
 # Dash to Panel
 
-This module installs the extension and supplies unlocked defaults. [default.nix](default.nix) defines the first-monitor layout as native schema attributes. Five layout maps are serialized with `builtins.toJSON` to the strings expected by the extension; animation extents and numeric values use explicit GVariant types. Existing user overrides take precedence. Apply source changes through the [local update workflow](../../../../readme.md#apply-local-configuration-and-update-the-whole-system); a new login may be needed.
+This module installs the extension and supplies unlocked defaults. [default.nix](default.nix) defines the first-monitor layout as native schema attributes. Five layout maps are serialized with `builtins.toJSON` to the strings expected by the extension; animation extents and numeric values use explicit GVariant types. Existing user overrides take precedence. A new login may be needed.
 
 Inspect and control the extension as the logged-in user:
 

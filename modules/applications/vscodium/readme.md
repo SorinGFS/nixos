@@ -1,6 +1,6 @@
 # VSCodium
 
-The module installs the editor and seeds `~/.config/VSCodium/User/settings.json` from [index.json](index.json) only when missing. The destination is fixed independently of `XDG_CONFIG_HOME`; existing writable settings and subsequent GUI edits remain user-owned. Source changes affect future seeds after the [local update workflow](../../readme.md#apply-local-configuration-and-update-the-whole-system). The seed selects the built-in Bash terminal profile and right-click paste. For an existing profile, open **Preferences: Open User Settings (JSON)** from the command palette and add these entries alongside existing settings:
+The module installs the editor and seeds `~/.config/VSCodium/User/settings.json` from [index.json](index.json) only when missing. The destination is fixed independently of `XDG_CONFIG_HOME`; existing writable settings and subsequent GUI edits remain user-owned. The seed selects the built-in Bash terminal profile and right-click paste. For an existing profile, open **Preferences: Open User Settings (JSON)** from the command palette and add these entries alongside existing settings:
 
 ```json
 "terminal.integrated.defaultProfile.linux": "bash",

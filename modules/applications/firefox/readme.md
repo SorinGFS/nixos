@@ -61,18 +61,18 @@ A wrapper change can create a new derivation/output while reusing an unchanged f
 
 ## X11 compatibility
 
-The native Firefox Nightly launcher in [Firefox module](default.nix) unsets `WAYLAND_DISPLAY` and sets `GDK_BACKEND=x11` and `MOZ_ENABLE_WAYLAND=0` for Firefox and its child processes, including launches from the desktop or `firefox-nightly` command. The session environment and generic default-browser launchers retain their settings. The change takes effect after [project activation](../../readme.md#apply-local-configuration-and-update-the-whole-system) and a Firefox restart.
+The native Firefox Nightly launcher in [Firefox module](default.nix) unsets `WAYLAND_DISPLAY` and sets `GDK_BACKEND=x11` and `MOZ_ENABLE_WAYLAND=0` for Firefox and its child processes, including launches from the desktop or `firefox-nightly` command. The session environment and generic default-browser launchers retain their settings. The change takes effect after a Firefox restart.
 
 The compatibility choice trades isolation for X11 compatibility: on a Wayland desktop, Xwayland provides weaker isolation between X11 clients than native Wayland, so other X11 clients may be able to observe or interfere with Firefox input and windows. The compatibility setting is scoped to Firefox.
 
 ## Update Firefox Nightly
 
-Firefox Nightly updates through the [operator-triggered whole-system update](../../readme.md#apply-local-configuration-and-update-the-whole-system). Refreshing all flake inputs advances its packaging input alongside Nixpkgs, so an available newer Nightly build is included in the same system build and activation. The machine's lockfile records the selected Nightly packaging revision. Revision selection belongs to the root input declaration and consumer lock; dependency delivery belongs to the composition argument, and package/launcher selection belongs to the Firefox module. The [four-state update model](../../../tutorial/nix.md#11-manual-updates-across-four-kinds-of-state) explains why refreshing a lock, building, activating, and restarting are separate transitions.
+The machine's lockfile records the selected Nightly packaging revision. Revision selection belongs to the root input declaration and consumer lock; dependency delivery belongs to the composition argument, and package/launcher selection belongs to the Firefox module. The [four-state update model](../../../tutorial/nix.md#11-manual-updates-across-four-kinds-of-state) explains why refreshing a lock, building, activating, and restarting are separate transitions.
 
-Fully quit and restart Firefox after activation to run the installed version. Native unlocked AutoConfig defaults and GUI-managed profile preferences retain their existing ownership and precedence. Browser startup can migrate profile data, so a system rollback alone does not restore that data; keep an independent profile backup.
+Fully quit and restart Firefox to run the installed version. Native unlocked AutoConfig defaults and GUI-managed profile preferences retain their existing ownership and precedence. Browser startup can migrate profile data, so a system rollback alone does not restore that data; keep an independent profile backup.
 
 ## Change Firefox defaults
 
-Edits to `modules/applications/firefox/index.json` take effect after [project activation](../../readme.md#apply-local-configuration-and-update-the-whole-system) and a Firefox restart. These are unlocked AutoConfig defaults: existing profile preferences, including an existing `user.js`, retain their values and take precedence. Resetting an individual preference in `about:config` selects its default.
+Edits to `modules/applications/firefox/index.json` take effect after a Firefox restart. These are unlocked AutoConfig defaults: existing profile preferences, including an existing `user.js`, retain their values and take precedence. Resetting an individual preference in `about:config` selects its default.
 
 Official documentation: [NixOS option priorities](https://nixos.org/manual/nixos/stable/#sec-option-definitions-setting-priorities), [Firefox AutoConfig](https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig).

@@ -40,7 +40,7 @@ gsettings set org.gnome.desktop.session idle-delay 0
 gsettings set org.gnome.settings-daemon.plugins.power idle-dim true
 ```
 
-Apply source changes through the [local update workflow](../../readme.md#apply-local-configuration-and-update-the-whole-system). The [dconf backend guide](../../services/dconf/readme.md) links to typed settings owners. See [GSettings CLI](https://github.com/GNOME/glib/blob/main/docs/reference/gio/gsettings.rst).
+The [dconf backend guide](../../services/dconf/readme.md) links to typed settings owners. See [GSettings CLI](https://github.com/GNOME/glib/blob/main/docs/reference/gio/gsettings.rst).
 
 ## Display scaling
 

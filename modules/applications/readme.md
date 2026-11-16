@@ -10,7 +10,7 @@ For host-only packages add attributes to the local `environment.systemPackages` 
 codium ./modules/applications/packages.nix
 ```
 
-For example, `gnumake` in that list provides `make`. A shared-source edit must be published and the consumer input refreshed before a GitHub-based host sees it; local host edits can be applied directly. Use native module options for option-managed applications rather than editing the baseline. User profiles and [one-off tools](../nix/readme.md#one-off-tools) are separate alternatives. Follow the [application workflow](../readme.md#apply-local-configuration-and-update-the-whole-system). [NixOS package management](https://nixos.org/manual/nixos/stable/#sec-package-management) and [package search](https://search.nixos.org/packages) describe selection.
+For example, `gnumake` in that list provides `make`. A shared-source edit must be published and the consumer input refreshed before a GitHub-based host sees it; local host edits can be applied directly. Use native module options for option-managed applications rather than editing the baseline. User profiles and [one-off tools](../nix/readme.md#one-off-tools) are separate alternatives. [NixOS package management](https://nixos.org/manual/nixos/stable/#sec-package-management) and [package search](https://search.nixos.org/packages) describe selection.
 
 ## tmux sessions
 
