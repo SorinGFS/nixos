@@ -3,6 +3,17 @@
 NixOS 26.05 with GNOME personal setup.
 The machine-local flake supplies the host, hardware and lock after [installation](./install.md).
 
+## Flake integration
+
+Host module from [flake.nix](flake.nix): `nixosModules.default`. Existing host flakes with their own `nixpkgs` input:
+
+```nix
+inputs.desktop.url = "github:SorinGFS/nixos";
+inputs.desktop.inputs.nixpkgs.follows = "nixpkgs";
+```
+
+Host output binding: `inputs` in the host's `outputs` function; module list: `inputs.desktop.nixosModules.default` in `nixpkgs.lib.nixosSystem`.
+
 ## Configuration
 
 Target: `/etc/nixos/flake.nix`. Backup scope: its source and matching lock.
@@ -28,17 +39,6 @@ cd /etc/nixos && su -c 'nix flake update'
 ```
 
 Build and activation use the commands above.
-
-## Flake integration
-
-Host module from [flake.nix](flake.nix): `nixosModules.default`. Existing host flakes with their own `nixpkgs` input:
-
-```nix
-inputs.desktop.url = "github:SorinGFS/nixos";
-inputs.desktop.inputs.nixpkgs.follows = "nixpkgs";
-```
-
-Host output binding: `inputs` in the host's `outputs` function; module list: `inputs.desktop.nixosModules.default` in `nixpkgs.lib.nixosSystem`.
 
 ## References
 
