@@ -24,7 +24,6 @@ Ctrl+b then d detaches; reconnect with `tmux attach -t work`. Ctrl+b then `%` sp
 
 - [Files](files/readme.md)
 - [Firefox Nightly](firefox/readme.md)
-- [GitHub CLI](gh/readme.md)
 - [KeePass](keepass/readme.md)
 - [Kitty](kitty/readme.md)
 - [VSCodium](vscodium/readme.md)

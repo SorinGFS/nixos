@@ -12,7 +12,6 @@
         ../shell/bash
         ../applications/firefox
         ../applications/files
-        ../applications/gh
         ../applications/kitty
         ../applications/vscodium
         ../applications/packages.nix
