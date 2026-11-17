@@ -35,6 +35,7 @@ in
                 focus-highlight-color = "#e01b24";
                 focus-highlight-dominant = true;
                 hotkeys-overlay-combo = "TEMPORARILY";
+                isolate-workspaces = true;
                 leftbox-padding = g.mkInt32 (-1);
                 # These five extension settings store JSON strings, not GVariant dictionaries.
                 panel-anchors = builtins.toJSON { "0" = "MIDDLE"; };

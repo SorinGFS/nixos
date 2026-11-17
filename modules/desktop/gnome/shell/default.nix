@@ -28,6 +28,9 @@ in
                 favorite-apps = [ "kitty.desktop" "org.gnome.Nautilus.desktop" "firefox-nightly.desktop" "codium.desktop" ];
                 app-picker-layout = g.mkArray [ page ];
             };
+            "org/gnome/shell/app-switcher" = {
+                current-workspace-only = true;
+            };
         };
     } ];
 }
