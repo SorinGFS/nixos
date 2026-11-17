@@ -19,7 +19,7 @@ nix --version
 nixos-version
 ```
 
-**Expected outcome:** The installed versions establish whether the system stages apply and which release documentation governs subsequent operations.
+**Expectation:** The installed versions establish whether the system stages apply and which release documentation governs subsequent operations.
 
 ### Source, store, selection, and runtime
 
@@ -31,7 +31,7 @@ A recipe book, a pantry of prepared dishes, and a selected menu illustrate descr
 
 **Example:** A package list changes in a text editor while the existing terminal and services retain their state. Building prepares the new result. Activation applies the chosen system configuration separately.
 
-**Expected outcome:** An operation can be classified as a source change, artifact preparation, profile selection, or operating-system activation without conflating those transitions.
+**Expectation:** An operation can be classified as a source change, artifact preparation, profile selection, or operating-system activation without conflating those transitions.
 
 ### Progressive roadmap and operational prerequisites
 
@@ -55,7 +55,7 @@ Application execution and development-shell entry add effects beyond building. A
 
 **Example:** “From any directory” indicates that the current folder does not affect the reference. “From `/etc/nixos`” identifies a required working directory; explicit `path:/etc/nixos` references identify that source independently. `REPLACE_WITH_SYSTEM`, `COMMIT`, and `PROFILE_NAME` denote verified platform, revision, and profile-name values. `workstation` is a fictional flake output label, separate from the machine's actual hostname.
 
-**Expected outcome:** The prerequisite account, source location, placeholder values, and possible effects are identifiable before an operation; missing machine details remain a prerequisite rather than a guessed value.
+**Expectation:** The prerequisite account, source location, placeholder values, and possible effects are identifiable before an operation; missing machine details remain a prerequisite rather than a guessed value.
 
 ### Practice: classifying a proposed change
 
@@ -65,7 +65,7 @@ Application execution and development-shell entry add effects beyond building. A
 
 **Example:** A package-list edit, a `flake.lock` update, and a system build have completed. A claim then states that a newly declared SSH service is running. The classification task concerns the missing transition and the evidence required for that claim.
 
-**Expected outcome:** Success criterion: the classification identifies activation as missing and distinguishes activation results from a runtime service observation.
+**Expectation:** Success criterion: the classification identifies activation as missing and distinguishes activation results from a runtime service observation.
 
 <details>
 <summary>Worked solution</summary>
@@ -86,7 +86,7 @@ Package management with Nix is independent of NixOS. NixOS additionally composes
 
 **Example:** A shell containing Nixpkgs' Hello package is a package exercise on a supported Nix host. An SSH server declaration is NixOS module configuration. A locked Nixpkgs revision is an input-selection mechanism.
 
-**Expected outcome:** Syntax, package recipes, artifact storage, operating-system integration, and dependency pinning have identifiable owners.
+**Expectation:** Syntax, package recipes, artifact storage, operating-system integration, and dependency pinning have identifiable owners.
 
 ### Evaluation before building
 
@@ -100,7 +100,7 @@ Package management with Nix is independent of NixOS. NixOS additionally composes
 nix --extra-experimental-features 'nix-command flakes' eval --expr '1 + 2'
 ```
 
-**Expected outcome:** Evaluation prints `3`. A missing executable or unsupported flag instead indicates an installed-version or setup issue requiring diagnosis before later examples apply.
+**Expectation:** Evaluation prints `3`. A missing executable or unsupported flag instead indicates an installed-version or setup issue requiring diagnosis before later examples apply.
 
 ### Evaluation, realization, and running systems
 
@@ -114,7 +114,7 @@ Explicit dependencies and retained generations improve inspectability and recove
 
 **Example:** A text-configuration change can reuse most packages. A foundational-library change can require many downstream builds when substitutes are unavailable. Service-specific migration plans and data backups cover the mutable state outside those artifacts.
 
-**Expected outcome:** Evaluation errors, fetch/build failures, and activation/runtime failures remain distinguishable, with separate evidence and recovery boundaries.
+**Expectation:** Evaluation errors, fetch/build failures, and activation/runtime failures remain distinguishable, with separate evidence and recovery boundaries.
 
 ### Practice: tracing dependency reachability
 
@@ -124,7 +124,7 @@ Explicit dependencies and retained generations improve inspectability and recove
 
 **Example:** A selected editor references a runtime library in the store. The classification task concerns whether package-list absence establishes that the library is disposable.
 
-**Expected outcome:** Success criterion: the explanation distinguishes explicit selection from transitive store reachability.
+**Expectation:** Success criterion: the explanation distinguishes explicit selection from transitive store reachability.
 
 <details>
 <summary>Worked solution</summary>
@@ -159,7 +159,7 @@ These constructs belong to the language. The module system supplies the NixOS me
 
 `machine.role = "practice";` represents the same nesting as `machine = { role = "practice"; };`. Duplicate attributes in one ordinary set are errors rather than sequential variable updates.
 
-**Expected outcome:** Strings, lists, nested attributes, semicolons, and whitespace-separated elements are recognizable without treating Nix as shell syntax.
+**Expectation:** Strings, lists, nested attributes, semicolons, and whitespace-separated elements are recognizable without treating Nix as shell syntax.
 
 ### Local names, interpolation, and operators
 
@@ -177,7 +177,7 @@ Explicit package references such as `[ pkgs.hello pkgs.git ]` expose their origi
 nix --extra-experimental-features 'nix-command flakes' eval --expr 'let count = 2; tools = [ "hello" ]; in { message = "${toString count} tools"; selected = tools ++ [ "git" ]; }'
 ```
 
-**Expected outcome:** The resulting set contains `message = "2 tools"` and `selected = [ "hello" "git" ]`; printed attribute order can differ from source order.
+**Expectation:** The resulting set contains `message = "2 tools"` and `selected = [ "hello" "git" ]`; printed attribute order can differ from source order.
 
 ### Functions, imports, and laziness
 
@@ -199,7 +199,7 @@ in
     greet { name = "Learner"; }
 ```
 
-**Expected outcome:** The parameter pattern, colon, return expression, and whitespace application explain the function's result independently of shell-command conventions.
+**Expectation:** The parameter pattern, colon, return expression, and whitespace application explain the function's result independently of shell-command conventions.
 
 ### Practice: representing typed values
 
@@ -209,7 +209,7 @@ in
 
 **Example:** A sample set requires Boolean `enabled`, a list of the strings `hello` and `git`, and numeric `count` equal to the list's length. The task is the representation of those three values.
 
-**Expected outcome:** Success criterion: three attributes use Boolean `true`, two whitespace-separated string elements, and numeric `2`.
+**Expectation:** Success criterion: three attributes use Boolean `true`, two whitespace-separated string elements, and numeric `2`.
 
 <details>
 <summary>Worked solution</summary>
@@ -246,7 +246,7 @@ less /etc/nixos/hardware-configuration.nix
 
 An absent conventional file calls for inspection of the actual entrypoint and imports, rather than a guessed replacement. `q` exits `less`.
 
-**Expected outcome:** The entrypoint and hardware imports are identified, with recoverable source/data and a boot/access fallback established before editing.
+**Expectation:** The entrypoint and hardware imports are identified, with recoverable source/data and a boot/access fallback established before editing.
 
 ### Options and supplied module arguments
 
@@ -268,7 +268,7 @@ An absent conventional file calls for inspection of the actual entrypoint and im
 
 Stage 6 adds this file to the composition. This module is the single owner of these additional tool definitions.
 
-**Expected outcome:** Source contains a separate tool-selection module; the running system remains unchanged until activation.
+**Expectation:** Source contains a separate tool-selection module; the running system remains unchanged until activation.
 
 ### Merging definitions by type and priority
 
@@ -290,7 +290,7 @@ Language-level `//` instead performs shallow set replacement. Module `imports` f
 
 An ordinary `networking.hostName = "another-name";` definition wins over this default. Two different ordinary hostname definitions require investigation of their owners and intended policy.
 
-**Expected outcome:** List combination and scalar conflicts are predictable from option types and priorities rather than file order alone.
+**Expectation:** List combination and scalar conflicts are predictable from option types and priorities rather than file order alone.
 
 ### Practice: preserving configuration ownership
 
@@ -300,7 +300,7 @@ An ordinary `networking.hostName = "another-name";` definition wins over this de
 
 **Example:** An online editor module is proposed as a replacement for an installed `configuration.nix` containing hardware imports and administrator definitions. The task concerns a composition that retains those existing settings.
 
-**Expected outcome:** Success criterion: the composition includes the new software definition without discarding any installed-machine settings.
+**Expectation:** Success criterion: the composition includes the new software definition without discarding any installed-machine settings.
 
 <details>
 <summary>Worked solution</summary>
@@ -328,7 +328,7 @@ nix --extra-experimental-features 'nix-command flakes' shell github:NixOS/nixpkg
 
 The first command prints the supplied greeting; the second prints Hello's default greeting. Both retain the system package list. A shell exposes tools on `PATH`, and executed programs retain ordinary user-level file and network access.
 
-**Expected outcome:** A trusted tool runs without a persistent user-profile change or selection of another OS generation.
+**Expectation:** A trusted tool runs without a persistent user-profile change or selection of another OS generation.
 
 ### User-profile selections and history
 
@@ -349,7 +349,7 @@ nix --extra-experimental-features 'nix-command flakes' profile rollback
 
 Rollback selects the most recent older profile version. Intervening profile operations can make that version different from the intended recovery target, so inspected history determines its suitability.
 
-**Expected outcome:** A per-user package selection remains distinguishable from a package declared for all system users, including its separate history and rollback target.
+**Expectation:** A per-user package selection remains distinguishable from a package declared for all system users, including its separate history and rollback target.
 
 ### Removing and upgrading at the owning layer
 
@@ -368,7 +368,7 @@ nix --extra-experimental-features 'nix-command flakes' profile upgrade PROFILE_N
 
 For the stage 4 module, omitting `pkgs.hello` from its list removes that system-wide selection after the stage 7 rebuild/activation. Other profiles or environments can still expose Hello.
 
-**Expected outcome:** Package exposure is changed at its actual owner, while unused store artifacts remain subject to Nix-managed reachability and cleanup.
+**Expectation:** Package exposure is changed at its actual owner, while unused store artifacts remain subject to Nix-managed reachability and cleanup.
 
 ### Practice: explaining a persistent executable
 
@@ -378,7 +378,7 @@ For the stage 4 module, omitting `pkgs.hello` from its list removes that system-
 
 **Example:** Hello has been removed from a user profile but remains available after activation of `cli-tools.nix`. The task concerns an alternative owner and the corresponding declarative change.
 
-**Expected outcome:** Success criterion: the explanation identifies the system-package definition and separates profile removal from that definition's lifecycle.
+**Expectation:** Success criterion: the explanation identifies the system-package definition and separates profile removal from that definition's lifecycle.
 
 <details>
 <summary>Worked solution</summary>
@@ -401,7 +401,7 @@ Pins support repeatable evaluation by recording input choices. User-data backups
 
 **Example:** A branch request in `flake.nix` describes an input policy; the resolved tree in `flake.lock` records the current exact choice. Neither source artifact activates the running machine.
 
-**Expected outcome:** Source declarations, resolved pins, and runtime state have distinct inspection points and guarantees.
+**Expectation:** Source declarations, resolved pins, and runtime state have distinct inspection points and guarantees.
 
 ### Source layout and verified platform selection
 
@@ -432,7 +432,7 @@ nix --extra-experimental-features 'nix-command flakes' eval --impure --raw --exp
 
 Here `--impure` obtains the current installation's native platform; it is not a general flake workaround. A native configuration requires agreement with any existing `nixpkgs.hostPlatform` setting. Cross-compilation is outside this sequence. Every `REPLACE_WITH_SYSTEM` occurrence denotes that verified platform pair and requires substitution before use.
 
-**Expected outcome:** The source layout retains installed files, excludes private material, and has a verified platform value for subsequent expressions.
+**Expectation:** The source layout retains installed files, excludes private material, and has a verified platform value for subsequent expressions.
 
 ### Creating the initial configuration spine
 
@@ -480,7 +480,7 @@ The Nixpkgs branch must match the release intended for maintenance, with its doc
 
 `self` refers to this flake and can reference its outputs. The selected Nixpkgs input supplies `lib` and the composition interface.
 
-**Expected outcome:** One explicit composition retains the installed hardware, users, boot settings, hostname, and state compatibility settings, while adding tool and CLI-feature modules.
+**Expectation:** One explicit composition retains the installed hardware, users, boot settings, hostname, and state compatibility settings, while adding tool and CLI-feature modules.
 
 ### Locking and inspecting before activation
 
@@ -504,7 +504,7 @@ nix --extra-experimental-features 'nix-command flakes' eval --no-update-lock-fil
 
 The locking account requires source-write authorization through the established administrative workflow, preserving ownership and permissions. `--no-update-lock-file` causes inspection to fail when lock changes are required rather than silently accepting new pins.
 
-**Expected outcome:** The lock contains resolved inputs and evaluation prints the preserved actual hostname. Runtime activation remains unchanged.
+**Expectation:** The lock contains resolved inputs and evaluation prints the preserved actual hostname. Runtime activation remains unchanged.
 
 ### Practice: distinguishing output names from hostnames
 
@@ -514,7 +514,7 @@ The locking account requires source-write authorization through the established 
 
 **Example:** The actual machine has a hostname other than `workstation`. The classification task concerns the validity of the explicit selector `path:/etc/nixos#workstation` without a hostname change.
 
-**Expected outcome:** Success criterion: the explanation identifies the selected attribute and the separate source of the actual hostname.
+**Expectation:** Success criterion: the explanation identifies the selected attribute and the separate source of the actual hostname.
 
 <details>
 <summary>Worked solution</summary>
@@ -539,7 +539,7 @@ nix --extra-experimental-features 'nix-command flakes' build --no-link --print-o
 
 Normal-user execution can download substantial data, run package builders, and consume disk and CPU. A failure requires diagnosis before activation becomes appropriate.
 
-**Expected outcome:** Nix prints a realized `/nix/store/…-nixos-system-…` path. Running-system and default-boot selections remain unchanged, and the working directory contains no new result link.
+**Expectation:** Nix prints a realized `/nix/store/…-nixos-system-…` path. Running-system and default-boot selections remain unchanged, and the working directory contains no new result link.
 
 ### Choosing an activation mode
 
@@ -568,7 +568,7 @@ sudo nixos-rebuild switch --flake path:/etc/nixos#workstation --option extra-exp
 
 The intended immediate/boot effect determines the selected mode. Installed `nixos-rebuild --help` establishes local flag support if it differs from the example. Stage 1 describes authorized administrative alternatives. A coherent, unchanged source/lock pair between build and activation preserves the reviewed candidate.
 
-**Expected outcome:** The selected mode's immediate and next-boot effects are explicit, including service restarts and persistent data risks during `test`.
+**Expectation:** The selected mode's immediate and next-boot effects are explicit, including service restarts and persistent data risks during `test`.
 
 ### Observing activation and runtime results
 
@@ -589,7 +589,7 @@ systemctl --failed
 
 `hello --version` runs the selected trusted executable for version inspection. A fresh terminal can clear stale shell-command lookup. The observed result and previously working access establish whether the intended transition succeeded.
 
-**Expected outcome:** Functional observations support the result, or a specific mismatch becomes the subject of diagnosis before further activation attempts.
+**Expectation:** Functional observations support the result, or a specific mismatch becomes the subject of diagnosis before further activation attempts.
 
 ### Practice: classifying activation effects
 
@@ -599,7 +599,7 @@ systemctl --failed
 
 **Example:** The first goal is package-build verification with existing services unchanged. The later goal is selection of the candidate for the next boot, also without immediate activation. The task concerns the two corresponding operations.
 
-**Expected outcome:** Success criterion: build-only satisfies the first goal, and `boot` is distinguished from `test` for the second.
+**Expectation:** Success criterion: build-only satisfies the first goal, and `boot` is distinguished from `test` for the second.
 
 <details>
 <summary>Worked solution</summary>
@@ -639,7 +639,7 @@ sudo passwd learner
 
 Interactive entry keeps the password outside source. An existing immutable-account policy instead requires its documented password-file options and established secret-management process; the mutable-account procedure does not establish compatibility with that policy.
 
-**Expected outcome:** The account declaration adds an optional login while retaining administrator access and separating credentials from source/store artifacts.
+**Expectation:** The account declaration adds an optional login while retaining administrator access and separating credentials from source/store artifacts.
 
 ### Separating networking policy from service experiments
 
@@ -664,7 +664,7 @@ A service package and its OS integration have different roles. OpenSSH enablemen
 
 Inclusion in the existing modules list is optional and requires reconciliation with any existing SSH settings. A verified alternate login is a prerequisite for password/key changes. Remote-only account, network, or SSH experiments require recovery access before proceeding.
 
-**Expected outcome:** The proposed service integration and remaining authentication, firewall, and recovery conditions are explicit before activation.
+**Expectation:** The proposed service integration and remaining authentication, firewall, and recovery conditions are explicit before activation.
 
 ### Inspecting services and selecting an optional desktop
 
@@ -694,7 +694,7 @@ Optional **SOURCE EDIT**, complete `/etc/nixos/modules/desktop.nix`, for a revie
 
 Desktop inclusion, building, and activation form a separate change from networking/accounts. Large downloads and graphical-session disruption are possible; a recovery console is a prerequisite. A headless host retains its existing server/console configuration.
 
-**Expected outcome:** Service status is independently observable, and a desktop remains an optional integrated module choice rather than merely a package-list entry.
+**Expectation:** Service status is independently observable, and a desktop remains an optional integrated module choice rather than merely a package-list entry.
 
 ### Practice: analyzing SSH exposure
 
@@ -704,7 +704,7 @@ Desktop inclusion, building, and activation form a separate change from networki
 
 **Example:** A configuration contains `services.openssh.openFirewall = false;`. The task concerns the scope of that setting and whether it establishes universal remote unreachability.
 
-**Expected outcome:** Success criterion: the explanation distinguishes prevention of an automatic allow rule from independently permitted traffic.
+**Expectation:** Success criterion: the explanation distinguishes prevention of an automatic allow rule from independently permitted traffic.
 
 <details>
 <summary>Worked solution</summary>
@@ -732,7 +732,7 @@ nix flake update --flake path:/etc/nixos
 
 The first targets `nixpkgs`; the second targets every input. In the minimal one-input spine their scope currently coincides. `--flake path:/etc/nixos` names the location; positional arguments name inputs.
 
-**Expected outcome:** The intended lock revisions change, with old/new revision review and a build preceding any activation decision.
+**Expectation:** The intended lock revisions change, with old/new revision review and a build preceding any activation decision.
 
 ### Pinning and restoring coherent source
 
@@ -748,7 +748,7 @@ An explicit source pin uses `github:NixOS/nixpkgs/COMMIT`, where `COMMIT` is a v
 nix flake lock path:/etc/nixos
 ```
 
-**Expected outcome:** The intended dependency tree, reason for its pin, and reconsideration point are identifiable alongside the compatible configuration source.
+**Expectation:** The intended dependency tree, reason for its pin, and reconsideration point are identifiable alongside the compatible configuration source.
 
 ### Planning release transitions separately
 
@@ -760,7 +760,7 @@ The installed `system.stateVersion` remains unchanged unless a separately docume
 
 **Example:** Adapting this tutorial to another installed release's maintained branch preserves that release. Moving the machine to 26.05 is a separate upgrade objective with its own prerequisites and reviewed branch edit.
 
-**Expected outcome:** A release transition has an explicit plan rather than occurring incidentally through copied input configuration.
+**Expectation:** A release transition has an explicit plan rather than occurring incidentally through copied input configuration.
 
 ### Practice: identifying an update's changed artifact
 
@@ -770,7 +770,7 @@ The installed `system.stateVersion` remains unchanged unless a separately docume
 
 **Example:** `nix flake update nixpkgs --flake path:/etc/nixos` completes while `flake.nix` still requests the same branch. The task concerns the changed file and the remaining steps before a new system runs.
 
-**Expected outcome:** Success criterion: the answer identifies the lock update and separate build/activation requirements.
+**Expectation:** Success criterion: the answer identifies the lock update and separate build/activation requirements.
 
 <details>
 <summary>Worked solution</summary>
@@ -799,7 +799,7 @@ nixos-rebuild list-generations
 
 The inspected machine history identifies actual generation numbers. A recorded known-good target is a generation that has been tested, rather than simply an older number.
 
-**Expected outcome:** A retained system fallback and the independent source/data recovery assets have distinct, documented roles.
+**Expectation:** A retained system fallback and the independent source/data recovery assets have distinct, documented roles.
 
 ### Recovering running and unbootable systems
 
@@ -817,7 +817,7 @@ sudo nixos-rebuild switch --rollback
 
 A user-profile mistake has a different path: inspected `nix profile history` and normal-user `nix profile rollback`. That operation affects the user selection rather than OS boot, services, or networking.
 
-**Expected outcome:** Usable-system rollback, boot-menu recovery, source repair, and data restoration have separate plans and applicability conditions.
+**Expectation:** Usable-system rollback, boot-menu recovery, source repair, and data restoration have separate plans and applicability conditions.
 
 ### Garbage collection and history retention
 
@@ -841,7 +841,7 @@ nix store gc
 
 Cleanup privileges depend on authorization in the installed Nix setup. Collection removes unreachable paths while retained generations continue to provide roots.
 
-**Expected outcome:** Remaining disk usage is explainable through reachability, and history deletion remains an intentional tradeoff rather than an accidental loss of rollback targets.
+**Expectation:** Remaining disk usage is explainable through reachability, and history deletion remains an intentional tradeoff rather than an accidental loss of rollback targets.
 
 ### Practice: matching recovery assets to state
 
@@ -851,7 +851,7 @@ Cleanup privileges depend on authorization in the installed Nix setup. Collectio
 
 **Example:** A service upgrade has migrated its database, and the older service cannot read the new format. The task concerns whether booting an older generation establishes data recovery and which additional asset is required.
 
-**Expected outcome:** Success criterion: the explanation identifies service-specific database recovery and a suitable backup separately from software rollback.
+**Expectation:** Success criterion: the explanation identifies service-specific database recovery and a suitable backup separately from software rollback.
 
 <details>
 <summary>Worked solution</summary>
@@ -906,7 +906,7 @@ The older generation restores selected software and generated configuration. Dat
 
 `import nixpkgs { inherit system; config = {}; overlays = []; }` evaluates the locked source for the selected platform. Explicit `config` and `overlays` make this standalone package set independent of ambient user configuration, following the [official best-practices guide](https://nix.dev/guides/best-practices#nixpkgs-config). The NixOS module system configures its own package set independently. Existing NixOS configuration and overlays remain intact; stage 12 explains deliberate system customization and explicit overlay sharing.
 
-**Expected outcome:** The installed-machine wrapper now also exposes a platform-specific package and development shell without changing ownership of the NixOS package set.
+**Expectation:** The installed-machine wrapper now also exposes a platform-specific package and development shell without changing ownership of the NixOS package set.
 
 ### Entering and leaving the shell
 
@@ -930,7 +930,7 @@ exit
 
 An actual application project normally owns its own flake and lock in the project directory. `/etc/nixos` supplies a continuous learning example here rather than ownership of every application's dependencies.
 
-**Expected outcome:** Tools are available without an OS rebuild, and leaving the environment restores the outer shell while preserving project work.
+**Expectation:** Tools are available without an OS rebuild, and leaving the environment restores the outer shell while preserving project work.
 
 ### Building and running named outputs
 
@@ -947,7 +947,7 @@ nix run --no-update-lock-file path:/etc/nixos#default -- --greeting 'One flake, 
 
 The package fallback executes Hello. NixOS activation remains unchanged throughout these output-consumption operations.
 
-**Expected outcome:** Output selection follows the requested artifact or execution purpose without equating application execution with operating-system activation.
+**Expectation:** Output selection follows the requested artifact or execution purpose without equating application execution with operating-system activation.
 
 ### Practice: selecting a development interface
 
@@ -957,7 +957,7 @@ The package fallback executes Hello. NixOS activation remains unchanged througho
 
 **Example:** Three tasks require Hello execution once, realization without a result link, and entry into the declared tool environment. The classification concerns the corresponding commands and their execution effects.
 
-**Expected outcome:** Success criterion: the answer identifies `run`, `build --no-link`, and `develop`, including the command that executes a shell.
+**Expectation:** Success criterion: the answer identifies `run`, `build --no-link`, and `develop`, including the command that executes a shell.
 
 <details>
 <summary>Worked solution</summary>
@@ -993,7 +993,7 @@ The existing flake output set gains `nixosModules.commonTools = import ./modules
 
 This replacement retains a single owner for shared tool definitions. The old unreferenced file has no module effect and can remain in source pending a deliberate removal decision.
 
-**Expected outcome:** A documented public switch controls a reusable module consumed by the existing workstation without duplicate tool ownership.
+**Expectation:** A documented public switch controls a reusable module consumed by the existing workstation without duplicate tool ownership.
 
 ### Package overrides and package-set overlays
 
@@ -1024,7 +1024,7 @@ Optional inclusion in the workstation modules list applies the experiment to the
 
 The stage 11 shell uses a separately imported `pkgs` with explicit configuration and overlays. Sharing the customization requires passing the same reviewed overlay explicitly to that import. Each independently constructed package set owns its overlay selection.
 
-**Expected outcome:** A local override addresses one result, while a deliberately scoped overlay addresses package-set-wide policy with its associated rebuild reach.
+**Expectation:** A local override addresses one result, while a deliberately scoped overlay addresses package-set-wide policy with its associated rebuild reach.
 
 ### Sharing policy while retaining machine-specific hardware
 
@@ -1038,7 +1038,7 @@ For an additional input illustratively named `desktop`, `inputs.desktop.inputs.n
 
 This is an incomplete composition plan until the actual second host's hardware configuration and platform are available. The working one-machine spine remains the usable configuration meanwhile. Remote deployment, cross-compilation, package-language build helpers, custom kernels, image generation, secret-management integrations, and Home Manager are later specializations requiring a demonstrated need and their own prerequisites. Home Manager is a separate project, not a prerequisite for user profiles or NixOS.
 
-**Expected outcome:** Shared policy and independent machine identity have clear composition boundaries without treating a hypothetical second host as deployable configuration.
+**Expectation:** Shared policy and independent machine identity have clear composition boundaries without treating a hypothetical second host as deployable configuration.
 
 ### Practice: matching abstractions to responsibilities
 
@@ -1048,7 +1048,7 @@ This is an incomplete composition plan until the actual second host's hardware c
 
 **Example:** Three goals concern shared SSH policy between machines, a renamed Hello derivation for one experiment, and a consistently replaced library across a package set. The task is classification by mechanism and rebuild reach.
 
-**Expected outcome:** Success criterion: the goals map respectively to a module, a local override, and an overlay, with scope-aware rebuild expectations.
+**Expectation:** Success criterion: the goals map respectively to a module, a local override, and an overlay, with scope-aware rebuild expectations.
 
 <details>
 <summary>Worked solution</summary>
@@ -1075,7 +1075,7 @@ nix eval --show-trace --no-update-lock-file --raw path:/etc/nixos#nixosConfigura
 
 `enable = "true";` supplies a string where `enable = true;` supplies a Boolean. An “option does not exist” error can indicate a release-specific name, a missing declaring-module import, or a spelling error. The correction belongs at the owning declaration, import, or definition established by that evidence.
 
-**Expected outcome:** The error has a layer classification and one evidence-based correction at its actual owner.
+**Expectation:** The error has a layer classification and one evidence-based correction at its actual owner.
 
 ### Narrowing changes and bisecting candidates
 
@@ -1087,7 +1087,7 @@ nix eval --show-trace --no-update-lock-file --raw path:/etc/nixos#nixosConfigura
 
 **Example:** Evaluation fails after three optional modules are added to a previously buildable system. Omitting only the new optional imports retains the installed core; incremental reintroduction isolates the earliest failure. A failed-service symptom instead calls for its logs, because build success and runtime failure implicate different boundaries.
 
-**Expected outcome:** A minimal reproducible source/input difference has an explicit criterion distinguishing passing and failing candidates.
+**Expectation:** A minimal reproducible source/input difference has an explicit criterion distinguishing passing and failing candidates.
 
 ### Symptom-based boundary inspection
 
@@ -1112,7 +1112,7 @@ The [next-step plan](#appendix-c-next-step-plan) resumes the learning sequence a
 
 **Example:** A concise change record contains the intended result, changed files, input revision, evaluation/build result, activation mode, runtime inspection, and recovery target. A shareable diagnostic excerpt includes versions, relevant configuration, the exact error, and prior working behavior, with secrets and private details redacted.
 
-**Expected outcome:** Diagnosis has a bounded next inspection and a minimal, privacy-preserving evidence record suitable for further assistance.
+**Expectation:** Diagnosis has a bounded next inspection and a minimal, privacy-preserving evidence record suitable for further assistance.
 
 ### Practice: diagnosing runtime failure before further changes
 
@@ -1122,7 +1122,7 @@ The [next-step plan](#appendix-c-next-step-plan) resumes the learning sequence a
 
 **Example:** A changed SSH configuration builds successfully, but remote login fails. The classification concerns three useful runtime observations and a recovery condition, contrasted with an unrelated update of every flake input.
 
-**Expected outcome:** Success criterion: service/network evidence guides diagnosis while an existing working recovery path remains available.
+**Expectation:** Success criterion: service/network evidence guides diagnosis while an existing working recovery path remains available.
 
 <details>
 <summary>Worked solution</summary>
@@ -1218,7 +1218,7 @@ nix store gc --dry-run
 nix store gc
 ```
 
-**Expected outcome:** An operation is retrievable by purpose with its original prerequisites, source location, effect classification, and recovery boundaries intact.
+**Expectation:** An operation is retrievable by purpose with its original prerequisites, source location, effect classification, and recovery boundaries intact.
 
 ## Appendix B. Glossary
 
@@ -1259,7 +1259,7 @@ nix store gc
 
 **Example:** Flake evaluation computes a description. System-output realization obtains artifacts. Activation applies running-system changes. The three terms identify three different transitions.
 
-**Expected outcome:** The vocabulary maps back to source, store, selection, and runtime responsibilities without obscuring their separate effects.
+**Expectation:** The vocabulary maps back to source, store, selection, and runtime responsibilities without obscuring their separate effects.
 
 ## Appendix C. Next-step plan
 
@@ -1277,7 +1277,7 @@ nix store gc
 
 **Example:** A session plan records the intended result, source files and pins, verification criterion, activation decision, and recovery target before the change. The owning stage provides the relevant operation and prerequisites.
 
-**Expected outcome:** Incremental maintenance has observable success criteria and a defined recovery boundary for every change.
+**Expectation:** Incremental maintenance has observable success criteria and a defined recovery boundary for every change.
 
 ## Appendix D. Sources and evidence limits
 
@@ -1291,7 +1291,7 @@ Stable documentation URLs can advance to newer versions. The installed version d
 
 **Example:** The configuration manual describes `test` as activation of candidate services while retaining the existing boot default. Stage 7 separates build review from that activation and its persistent-state risks.
 
-**Expected outcome:** Release-matched interface contracts support deliberate adaptation of the workflow to the verified installation.
+**Expectation:** Release-matched interface contracts support deliberate adaptation of the workflow to the verified installation.
 
 ### Official documentation by subject
 
@@ -1312,4 +1312,4 @@ Stable documentation URLs can advance to newer versions. The installed version d
 - Cleanup: [GC explanation](https://nix.dev/manual/nix/stable/package-management/garbage-collection.html), [store GC](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-store-gc.html), [collect-garbage](https://nix.dev/manual/nix/stable/command-ref/nix-collect-garbage.html).
 - Secondary official community wiki: [Nixos-rebuild](https://wiki.nixos.org/wiki/Nixos-rebuild), [Flakes](https://wiki.nixos.org/wiki/Flakes). The applicable primary manual takes precedence over dated wiki notes.
 
-**Expected outcome:** A bounded official source list supports verification of syntax, effects, release requirements, and adaptation to the machine's verified configuration.
+**Expectation:** A bounded official source list supports verification of syntax, effects, release requirements, and adaptation to the machine's verified configuration.
