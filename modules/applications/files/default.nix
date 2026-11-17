@@ -11,6 +11,7 @@
                 date-time-format = "detailed";
             };
             "org/gnome/nautilus/list-view" = {
+                default-zoom-level = "small";
                 default-column-order = [
                     "name" "type" "permissions" "owner" "group" "date_accessed"
                     "date_created" "date_modified" "size" "recency" "detailed_type"
