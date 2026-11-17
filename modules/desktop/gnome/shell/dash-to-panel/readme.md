@@ -1,6 +1,6 @@
 # Dash to Panel
 
-This module installs the extension and supplies unlocked defaults. [default.nix](default.nix) defines the first-monitor layout as native schema attributes. Five layout maps are serialized with `builtins.toJSON` to the strings expected by the extension; animation extents and numeric values use explicit GVariant types. Existing user overrides take precedence. A new login may be needed.
+This module installs the extension and supplies unlocked defaults. The packaged extension keeps Quick Settings indicators vertical on vertical panels while other widgets retain their usual orientation adaptation, following [upstream fix #2586](https://github.com/home-sweet-gnome/dash-to-panel/pull/2586). [default.nix](default.nix) defines the first-monitor layout as native schema attributes. Five layout maps are serialized with `builtins.toJSON` to the strings expected by the extension; animation extents and numeric values use explicit GVariant types. Existing user overrides take precedence. A new login may be needed.
 
 Inspect and control the extension as the logged-in user:
 

@@ -5,7 +5,14 @@ let
     extents = { PLANK = 4; RIPPLE = 4; SIMPLE = 1; };
 in
 {
-    environment.systemPackages = [ pkgs.gnomeExtensions.dash-to-panel ];
+    environment.systemPackages = [
+        (pkgs.gnomeExtensions.dash-to-panel.overrideAttrs (old: {
+            # Keep Quick Settings indicators stacked on vertical panels.
+            postPatch = (old.postPatch or "") + ''
+                substituteInPlace panel.js --replace-fail 'isVertical = isVertical && natWidth > this.geom.innerSize' 'isVertical = isVertical && (actor == this.statusArea.quickSettings || natWidth > this.geom.innerSize)'
+            '';
+        }))
+    ];
     programs.dconf.profiles.user.databases = [ {
         settings = {
             "org/gnome/shell/extensions/dash-to-panel" = {
