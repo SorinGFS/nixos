@@ -26,15 +26,15 @@ Choose the existing partitions and review the preview. Answer `yes` to begin ins
 
 ## Process Model
 
-1. Verify that the installer runs as root, required native commands are available, and Linux-reported total RAM is at least 8 GB.
-2. Display the native hardware preview and block-device inventory, then report detected firmware or the selected firmware override.
-3. Select the bootloader and existing partitions according to the firmware mode. The root partition must be at least 20 GB; select an EFI System Partition for UEFI and the supported BIOS disk layout for BIOS. GRUB can use an optional separate Linux `/boot` partition.
-4. Pin the shared flake inputs and read the target release from pinned Nixpkgs. Choose the default kernel/Mesa graphics option or query a compatible NVIDIA driver against the pinned public module defaults and kernel packages.
-5. Collect the administrator username and hostname, then review the compact installation preview.
-6. Answer the final `yes`/`no` prompt; `yes` proceeds with installation.
-7. Format the selected root and optional separate `/boot` partitions as ext4. Mount the root at `/mnt`, the optional `/boot` at `/mnt/boot`, and the EFI System Partition at `/mnt/boot` for systemd-boot or `/mnt/boot/efi` for GRUB. The ESP filesystem is preserved.
-8. Run native `nixos-generate-config --root /mnt` and write `/mnt/etc/nixos/configuration.nix` with the selected settings and initial state version from the pinned target release. Retain the generated `hardware-configuration.nix`, write a machine-local `flake.nix` importing the full public desktop module, and copy the staged `flake.lock`. These files are the local source of truth for subsequent updates.
-9. Run `nixos-install` against the local flake and selected hostname with `TMPDIR` unset. Native installation handles bootloader setup and prompts for the root password; bootloader installation writes its boot files and may update firmware entries.
-10. Set the administrator password at the native `passwd` prompt. After successful completion, leave target filesystems mounted at `/mnt`; reboot manually when ready.
+1. Preflight checks require root privileges, the native installation commands, and at least 8 GB of Linux-reported total RAM.
+2. The native hardware preview and block-device inventory appear first, followed by the detected firmware mode or the selected override.
+3. Firmware mode determines the bootloader and storage options. The root partition must be at least 20 GB. UEFI requires an existing EFI System Partition; BIOS uses GRUB and requires a disk with a supported partition layout. GRUB supports an optional separate Linux `/boot` partition.
+4. The shared flake inputs are pinned before graphics selection. The pinned Nixpkgs revision determines the target release. The graphics menu offers the kernel/Mesa defaults or an NVIDIA compatibility query against the pinned public module defaults and kernel packages.
+5. The administrator and hostname prompts precede a compact preview of the installation choices.
+6. The final confirmation gates destructive operations. A `yes` response starts installation; `no` or end-of-input cancels it.
+7. The selected root and optional separate `/boot` partitions are formatted as ext4 and mounted at `/mnt` and `/mnt/boot`, respectively. The EFI System Partition is mounted without reformatting at `/mnt/boot` for systemd-boot or `/mnt/boot/efi` for GRUB.
+8. `nixos-generate-config --root /mnt` generates `hardware-configuration.nix`, which is retained. The installer writes `/mnt/etc/nixos/configuration.nix` with the selected settings and the initial state version from the pinned target release. It also writes the machine-local `flake.nix` importing the full public desktop module and copies the staged `flake.lock`. These files govern subsequent updates.
+9. `nixos-install` uses the machine-local flake and selected hostname with `TMPDIR` unset. It prompts for the root password and installs the bootloader, writing boot files and potentially updating firmware entries.
+10. Native `passwd` prompts for the administrator password. After successful completion, the target filesystems remain mounted at `/mnt`; there is no automatic reboot.
 
-The full public desktop is included at first boot. Timezone, locale, X keyboard layout, console keymap, and unattended-upgrade policy belong to the machine-local configuration. CLI installations use NixOS upstream regional defaults until those choices are configured locally. For later input updates and rebuilds, use the [local configuration workflow](readme.md#configuration). Configuration is documented in [readme.md](readme.md).
+The full public desktop is included at first boot. Timezone, locale, X keyboard layout, console keymap, and unattended-upgrade policy belong to the machine-local configuration. CLI installations use NixOS upstream regional defaults until those choices are configured locally. The [configuration guide](readme.md#configuration) covers subsequent rebuilds and input updates.
