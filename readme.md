@@ -1,7 +1,7 @@
 # NixOS setup
 
 A fresh [installation](./install.md) sets up NixOS 26.05 with GNOME and applies this flake's full default preset.
-The following sections cover flake integration and maintenance for systems with an existing `/etc/nixos` configuration.
+The following sections cover flake integration and maintenance for systems with an **existing** `/etc/nixos` configuration.
 
 ## Flake integration
 
