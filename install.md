@@ -15,7 +15,9 @@ Run the installer as root from a NixOS live session. `nix-shell` provides Python
 From the NixOS live USB console, run this single command to enter a root login shell and provide Python 3, jq, and curl:
 
 ```bash
-sudo -i bash -c 'cd /tmp && nix-shell -p python3 jq curl --run "curl -fLO https://raw.githubusercontent.com/SorinGFS/nixos/main/install.sh && curl -fLO https://raw.githubusercontent.com/SorinGFS/nixos/main/install-nvidia.py && bash ./install.sh"'
+sudo -i
+nix-shell -p git python3 jq curl
+cd /tmp && git clone --depth 1 https://github.com/SorinGFS/nixos && bash nixos/install.sh
 ```
 
 Choose the existing partitions and review the preview. Answer `yes` to begin installation, or `no` to cancel.
