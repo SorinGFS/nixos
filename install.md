@@ -37,4 +37,4 @@ Choose the existing partitions and review the preview. Answer `yes` to begin ins
 9. `nixos-install` uses the machine-local flake and selected hostname with `TMPDIR` unset. It prompts for the root password and installs the bootloader, writing boot files and potentially updating firmware entries.
 10. Native `passwd` prompts for the administrator password. After successful completion, the target filesystems remain mounted at `/mnt`; there is no automatic reboot.
 
-The full public desktop is included at first boot. Timezone, locale, X keyboard layout, console keymap, and unattended-upgrade policy belong to the machine-local configuration. CLI installations use NixOS upstream regional defaults until those choices are configured locally. The [configuration guide](readme.md#configuration) covers subsequent rebuilds and input updates.
+The initial boot generation already includes the shared desktop module. The machine-local flake remains accessible at `/mnt/etc/nixos` in the live session and at `/etc/nixos` after reboot. [Flake integration](readme.md#flake-integration) explains the generated files and how to apply local changes before the first boot or afterward.
