@@ -10,9 +10,9 @@ Run the installer as root from a NixOS live session. `nix-shell` provides Python
 - Select an existing root partition. For UEFI, select an existing FAT EFI System Partition. GRUB can use a separate Linux `/boot` partition; systemd-boot uses the ESP for `/boot`. For BIOS, select a DOS/MBR disk or a GPT disk with a raw BIOS Boot reservation, and optionally a separate Linux `/boot` partition.
 - Choose the default kernel/Mesa graphics option or query a compatible NVIDIA driver. The NVIDIA query uses the companion [`install-nvidia.py`](install-nvidia.py) and requires Python 3, Nix, curl, and network access. The query retrieves upstream compatibility data and can populate the live Nix source/cache.
 
-## Run
+## Install
 
-From the NixOS live USB console, run this single command to enter a root login shell and provide Python 3, jq, and curl:
+From the NixOS live USB console, enter a root login shell providing git, Python 3, jq, and curl, then run install command:
 
 ```bash
 sudo -i
