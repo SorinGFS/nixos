@@ -8,8 +8,16 @@ let
         export PATH="${lib.makeBinPath [ pkgs.xdotool ]}:$PATH"
         exec ${pkgs.mono}/bin/mono "$HOME/.logins/KeePass.exe" "$@"
     '');
+    # Reuse the command launcher so desktop and terminal launches share its environment.
+    keepass-desktop = pkgs.makeDesktopItem {
+        name = "keepass-local";
+        desktopName = "KeePass";
+        exec = "${keepass-local}/bin/keepass-local";
+        icon = "dialog-password-symbolic";
+        terminal = false;
+    };
 in
 {
     imports = [ ./gnome ];
-    environment.systemPackages = [ keepass-local ];
+    environment.systemPackages = [ keepass-local keepass-desktop ];
 }

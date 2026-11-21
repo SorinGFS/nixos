@@ -1,10 +1,6 @@
 # KeePass launcher
 
-The optional policy provides `keepass-local` for the existing `$HOME/.logins/KeePass.exe`. Run as the normal user:
-
-```bash
-keepass-local
-```
+The optional policy provides a **KeePass** application-menu entry and the `keepass-local` command for the existing `$HOME/.logins/KeePass.exe`. The desktop entry runs the same launcher without a terminal and can be added to GNOME Favorites for Dash to Panel.
 
 The launcher supplies Nix-managed GTK 2 libraries only to its Mono process, preserving an existing `LD_LIBRARY_PATH`, adds xdotool to that process's PATH and forwards arguments. The executable, database and browser integration remain user-managed. Direct Mono launches use the caller's environment.
 

@@ -28,6 +28,10 @@ in
     services.gnome.gnome-initial-setup.enable = false;
     services.gnome.gnome-browser-connector.enable = false;
 
+    # Prevent missing XDG folders from being remapped to $HOME, which apps
+    # could mistake for the directory intended for public sharing.
+    environment.etc."xdg/user-dirs.conf".text = "enabled=False\n";
+
     # Apply typed, unlocked user defaults.
     programs.dconf.profiles.user.databases = [ {
         settings = {
