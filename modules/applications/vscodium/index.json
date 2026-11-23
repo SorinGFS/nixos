@@ -20,6 +20,8 @@
     "terminal.integrated.fontSize": 15,
     "terminal.integrated.defaultProfile.linux": "bash",
     "terminal.integrated.rightClickBehavior": "paste",
+    "terminal.integrated.copyOnSelection": true,
+    "terminal.external.linuxExec": "kitty",
     "debug.console.fontSize": 15,
     "[jsonc]": {
         "editor.defaultFormatter": "vscode.json-language-features"
