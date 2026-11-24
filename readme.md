@@ -16,23 +16,25 @@ Host output binding: `inputs` in the host's `outputs` function; module list: `in
 
 Reference: [Flake inputs and `follows` (Nix Reference Manual)](https://nix.dev/manual/nix/2.34/command-ref/new-cli/nix3-flake.html#flake-inputs).
 
-## Configuration
-
-After integration, the following command applies the configuration:
-
-```bash
-cd /etc/nixos && su -c 'nixos-rebuild switch --flake path:.'
-```
-
 ## Updates
 
-This command refreshes all inputs in `/etc/nixos/flake.lock`:
+Skip this step on first integration: the first rebuild adds the new `desktop` input to `flake.lock` (creating the lock file if needed).
+
+To refresh all pinned inputs, run this command before rebuilding:
 
 ```bash
 cd /etc/nixos && su -c 'nix flake update'
 ```
 
-The rebuild under [Configuration](#configuration) applies the updated inputs.
+Then run the command under [Apply](#apply).
+
+## Apply
+
+Rebuild and activate the host configuration:
+
+```bash
+cd /etc/nixos && su -c 'nixos-rebuild switch --flake path:.'
+```
 
 ## References
 
