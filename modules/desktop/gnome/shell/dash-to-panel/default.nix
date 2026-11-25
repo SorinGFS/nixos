@@ -46,7 +46,8 @@ in
                         { element = "activitiesButton"; visible = false; position = "stackedTL"; }
                         { element = "leftBox"; visible = false; position = "stackedTL"; }
                         { element = "centerBox"; visible = false; position = "stackedTL"; }
-                        { element = "rightBox"; visible = false; position = "stackedTL"; }
+                        # Keep GNOME's recording and sharing indicators visible.
+                        { element = "rightBox"; visible = true; position = "stackedTL"; }
                         { element = "systemMenu"; visible = true; position = "stackedBR"; }
                         { element = "dateMenu"; visible = true; position = "stackedBR"; }
                         { element = "desktopButton"; visible = true; position = "stackedBR"; }
