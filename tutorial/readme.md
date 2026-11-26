@@ -5,9 +5,9 @@
 <details>
 <summary>Read this section</summary>
 
-### The scope of “zero to hero”
+### What this tutorial covers
 
-This tutorial develops Nix language, functional-programming, and declarative-configuration concepts from first principles. “Hero” denotes practical competence with a modest NixOS configuration: explaining its structure, inspecting inputs, changing source, building results, activating changes, updating dependencies, recovering earlier selections, and sharing modules. Further specialization rests on those skills and release-matched references.
+This tutorial starts with the basics of the Nix language, functional programming, and declarative configuration. By the end, you’ll be able to explain how a small NixOS configuration fits together, inspect its inputs, edit it, build and activate it, update its dependencies, recover earlier selections, and share reusable modules. Use the references for your installed version when you’re ready to go deeper.
 
 The system examples begin with an **already installed NixOS machine**. Installation, partitioning, bootloader selection, hardware drivers, and migration from another distribution require machine-specific decisions covered by the [official NixOS manual](https://nixos.org/manual/nixos/stable/). Package and language exercises also apply on other supported systems with Nix installed; NixOS activation requires a NixOS host.
 
