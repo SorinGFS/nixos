@@ -36,6 +36,8 @@ For example, editing a package list leaves the existing terminal and services as
 
 The learning sequence progresses through [the mental model](#1-scope-safety-and-the-mental-model), [evaluation](#2-components-and-first-expression-evaluation), [the language](#3-reading-the-nix-language), [installed modules](#4-inspecting-installed-configuration-and-modules), [package scope](#5-choosing-package-scope), [the flake spine](#6-wrapping-the-existing-system-in-one-flake), [activation](#7-building-testing-and-activating-the-system), [optional system services](#8-accounts-networking-services-and-an-optional-desktop), [updates](#9-updating-inputs-and-planning-release-upgrades), [recovery](#10-recovery-and-garbage-collection), [development tools](#11-extending-the-flake-with-development-tools), [reuse](#12-reusing-modules-and-customizing-package-sets), and [diagnosis](#13-systematic-diagnosis-and-next-step-selection). Advanced stages extend the same small configuration. The appendices provide a [task command reference](#appendix-a-command-reference-by-task), [glossary](#appendix-b-glossary), [next-step plan](#appendix-c-next-step-plan), and [official sources](#appendix-d-sources-and-evidence-limits).
 
+Complete the [one-time user Nix setup](#evaluation-before-building) before running the modern Nix examples. You do not need to activate a NixOS configuration to start.
+
 A terminal provides an interface for entering commands; a shell interprets them. The shell examples use Bash syntax. Sequential execution with inspection of each result keeps failures attributable to individual operations. The working directory is the shell's current folder. `PATH` lists executable-search directories, so different environments can resolve the same command name to different installed copies. Nix expressions belong in Nix files or explicitly quoted expression arguments rather than unquoted shell input.
 
 | Effect label | Operational meaning |
@@ -77,15 +79,25 @@ For example, a shell containing Nixpkgs' Hello package is a package exercise on 
 
 ### Evaluation before building
 
-Start with literal arithmetic so you can see evaluation without changing system configuration. An **expression** produces a value; **evaluation** computes it. The modern Nix CLI and flakes remain experimental in the reference version. Explicit enablement permits those interfaces but does not imply stability. `--extra-experimental-features` adds to configured features for the invocation rather than replacing them. A later NixOS module supplies persistent settings after activation. The [flake concepts guide](https://nix.dev/concepts/flakes.html) covers enablement, and the [`nix eval` reference](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-eval.html) specifies evaluation behavior.
+An **expression** produces a value; **evaluation** computes it. The modern Nix CLI and flakes remain experimental in the reference version. Enabling them makes those interfaces available but does not imply stability.
 
-Try this **READ-ONLY** expression from any directory; the inputs are only arithmetic literals:
+**One-time user setup — SOURCE EDIT.** Do this as your ordinary user, without `sudo` or a root shell. If `nix-command` and `flakes` are already enabled for that account, skip this edit. Otherwise, edit the user `nix.conf` that Nix reads, creating it if missing. Normally this is `~/.config/nix/nix.conf`; if you set `XDG_CONFIG_HOME`, use `$XDG_CONFIG_HOME/nix/nix.conf`. If `NIX_USER_CONF_FILES` is set, it specifies the user configuration files instead; update the appropriate file in that list.
 
-```bash
-nix --extra-experimental-features 'nix-command flakes' eval --expr '1 + 2'
+Add this line as **file content**, not as a shell command. If the file already has an `extra-experimental-features` line, add only the missing names to it. Keep existing settings and features; the `extra-` form adds to the configured feature list rather than replacing it.
+
+```ini
+extra-experimental-features = nix-command flakes
 ```
 
-Evaluation prints `3`. A missing executable or unsupported flag instead indicates an installed-version or setup issue requiring diagnosis before later examples apply.
+See the [Nix 2.34 configuration reference](https://nix.dev/manual/nix/2.34/command-ref/conf-file.html) for configuration file selection and settings, and the [`nix eval` reference](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-eval.html) for evaluation behavior.
+
+Try this **READ-ONLY** expression as your ordinary user from any directory; the inputs are only arithmetic literals:
+
+```bash
+nix eval --expr '1 + 2'
+```
+
+Evaluation prints `3`. If Nix reports a disabled experimental feature, check that it reads the user file you edited. If the executable is missing or a flag is unsupported, check the installed version before continuing.
 
 ### Evaluation, realization, and running systems
 
@@ -145,7 +157,7 @@ Explicit package references such as `[ pkgs.hello pkgs.git ]` expose their origi
 Evaluate the local bindings and list concatenation together with this **READ-ONLY** command from any directory. Its inputs are literals:
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' eval --expr 'let count = 2; tools = [ "hello" ]; in { message = "${toString count} tools"; selected = tools ++ [ "git" ]; }'
+nix eval --expr 'let count = 2; tools = [ "hello" ]; in { message = "${toString count} tools"; selected = tools ++ [ "git" ]; }'
 ```
 
 The resulting set contains `message = "2 tools"` and `selected = [ "hello" "git" ]`; printed attribute order can differ from source order.
@@ -266,13 +278,13 @@ To try a tool without changing your user profile, system package list, or select
 Use `nix run` to build or fetch an app or suitable package and run it. The `--` passes the remaining arguments to Hello, which prints the supplied greeting.
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' run github:NixOS/nixpkgs/nixos-26.05#hello -- --greeting 'Hello from Nix'
+nix run github:NixOS/nixpkgs/nixos-26.05#hello -- --greeting 'Hello from Nix'
 ```
 
 Alternatively, use `nix shell` to put the tool on `PATH` in a temporary environment. Here `--command hello` runs it directly and prints the default greeting. Neither approach isolates the program from ordinary user-level file and network access.
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' shell github:NixOS/nixpkgs/nixos-26.05#hello --command hello
+nix shell github:NixOS/nixpkgs/nixos-26.05#hello --command hello
 ```
 
 The Nix 2.34 manual documents `nix shell` on the `nix env shell` reference page; the installed version determines which spelling works. These examples use `nix shell`, not the legacy `nix-shell` interface. See the [`run` reference](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-run.html) and [shell reference](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-env-shell.html).
@@ -286,25 +298,25 @@ Run the following choices from any directory as the normal user whose profile yo
 **READ-ONLY — list the current selections:**
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' profile list
+nix profile list
 ```
 
 **USER-PROFILE CHANGE — add Hello** if you want a persistent selection for this account:
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' profile add github:NixOS/nixpkgs/nixos-26.05#hello
+nix profile add github:NixOS/nixpkgs/nixos-26.05#hello
 ```
 
 **READ-ONLY — inspect profile history**, particularly before deciding whether to roll back:
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' profile history
+nix profile history
 ```
 
 **USER-PROFILE CHANGE — roll back** only if the most recent older profile version is the intended target. Intervening operations can make it a different version from the one you want. This changes the user profile, not the selected NixOS generation.
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' profile rollback
+nix profile rollback
 ```
 
 See the references for [adding](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-add.html), [listing](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-list.html), and [rolling back](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-rollback.html).
@@ -316,13 +328,13 @@ Change the selection where it is owned. For a modern profile, use the exact `PRO
 To remove a profile selection, use [remove](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-remove.html). This does not immediately delete store files: dependencies and older generations can still retain them, and Nix manages cleanup according to reachability.
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' profile remove PROFILE_NAME
+nix profile remove PROFILE_NAME
 ```
 
 To refresh a selection instead, use [upgrade](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-profile-upgrade.html). An unlocked reference is followed; a locked commit reference does not automatically move to a newer commit.
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' profile upgrade PROFILE_NAME
+nix profile upgrade PROFILE_NAME
 ```
 
 For a system package, edit the owning module instead. Omitting `pkgs.hello` from the stage 4 list removes that system-wide selection after the stage 7 rebuild and activation. Other profiles or environments can still expose Hello.
@@ -366,24 +378,24 @@ For the **SOURCE EDIT**, add the new files shown here and keep the installed one
     flake.lock                     generated by Nix
     modules/
         cli-tools.nix                from stage 4
-        nix-cli.nix                  new feature settings
+        nix-cli.nix                  new if no feature setting exists
 ```
 
 The following **READ-ONLY** platform inspection works from any directory:
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' eval --impure --raw --expr builtins.currentSystem
+nix eval --impure --raw --expr builtins.currentSystem
 ```
 
 Here `--impure` obtains the current installation's native platform; it is not a general flake workaround. A native configuration requires agreement with any existing `nixpkgs.hostPlatform` setting. Cross-compilation is outside this sequence. Every `REPLACE_WITH_SYSTEM` occurrence denotes that verified platform pair and requires substitution before use.
 
 ### Creating the initial configuration spine
 
-The complete flake makes the system's composition visible without moving machine-specific settings out of the installed configuration. `nixpkgs.lib.nixosSystem` composes modules into a complete system. `workstation` is the output attribute selected after `#`; `networking.hostName` remains owned by the existing configuration. The module list includes the installed `configuration.nix`, its existing hardware imports, and two small additions.
+The complete flake makes the system's composition visible without moving machine-specific settings out of the installed configuration. `nixpkgs.lib.nixosSystem` composes modules into a complete system. `workstation` is the output attribute selected after `#`; `networking.hostName` remains owned by the existing configuration. The module list retains the installed `configuration.nix` and its hardware imports and adds the tool module and, if needed, the feature module.
 
 The Nixpkgs branch must match the release intended for maintenance, with its documentation and option names checked. An installed release other than 26.05 requires its corresponding branch or a separately planned stage 9 upgrade. The verified platform substitution is equally necessary.
 
-**SOURCE EDIT:** Put these persistent feature settings in `/etc/nixos/modules/nix-cli.nix`. This complete supplemental module takes effect only after system activation:
+**SOURCE EDIT:** Declare persistent system-wide features in NixOS source. If the existing configuration already declares `nix.settings.experimental-features`, keep that definition and its entries, add only missing names there, and omit the `./modules/nix-cli.nix` entry in the wrapper below. Otherwise, put this supplemental module in `/etc/nixos/modules/nix-cli.nix`:
 
 ```nix
 # Persistent CLI features taking effect after system activation.
@@ -392,6 +404,8 @@ The Nixpkgs branch must match the release intended for maintenance, with its doc
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 }
 ```
+
+The setting takes effect only when this configuration becomes active. The [user setup](#evaluation-before-building) lets you evaluate and build before then; you do not need to copy it to root or edit the generated system `nix.conf` by hand.
 
 `/etc/nixos/flake.nix` contains the complete wrapper below, with `REPLACE_WITH_SYSTEM` replaced by the verified value:
 
@@ -421,7 +435,7 @@ The Nixpkgs branch must match the release intended for maintenance, with its doc
 
 `self` refers to this flake and can reference its outputs. The selected Nixpkgs input supplies `lib` and the composition interface.
 
-This composition adds the tool and CLI-feature modules while retaining the installed hardware, users, boot settings, hostname, and state compatibility settings.
+This composition adds CLI tools and declares system-wide Nix features while retaining the installed hardware, users, boot settings, hostname, and state compatibility settings.
 
 ### Locking and inspecting before activation
 
@@ -429,16 +443,16 @@ Before building or activating, settle the input pins and check the output you in
 
 Implicit local Git-backed references differ from the explicit `path:` form used here. New files need Git-index membership to enter a Git-backed snapshot. Dirty edits to tracked files are normally included with a warning and can be tested before a commit. Portable pure evaluation requires imports inside the captured source tree; private material remains outside. The official contracts cover [local flake sources](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake.html) and [locking](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-lock.html).
 
-**SOURCE EDIT plus input fetching:** Lock the source using an account authorized to write to `/etc/nixos` through the established administrative workflow, preserving ownership and permissions:
+**SOURCE EDIT plus input fetching:** Lock the source using the established administrative workflow, preserving ownership and permissions. The account running Nix must already have the features enabled and be authorized to write to `/etc/nixos`:
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' flake lock path:/etc/nixos
+nix flake lock path:/etc/nixos
 ```
 
 Then inspect the candidate from any directory (**READ-ONLY with evaluation/fetch/cache caveats**). `--no-update-lock-file` makes inspection fail if a lock change is required rather than silently accepting new pins:
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' eval --no-update-lock-file --raw path:/etc/nixos#nixosConfigurations.workstation.config.networking.hostName
+nix eval --no-update-lock-file --raw path:/etc/nixos#nixosConfigurations.workstation.config.networking.hostName
 ```
 
 The lock should now contain resolved inputs, and evaluation should print the machine's preserved hostname. Neither operation activates the candidate.
@@ -463,7 +477,7 @@ Build the candidate first so that evaluation or build failures surface before yo
 After substituting the platform and locking the inputs, run this **BUILD-ONLY** command as a normal user from any directory. It can download substantial data, run package builders, and consume disk and CPU:
 
 ```bash
-nix --extra-experimental-features 'nix-command flakes' build --no-link --print-out-paths --no-update-lock-file path:/etc/nixos#nixosConfigurations.workstation.config.system.build.toplevel
+nix build --no-link --print-out-paths --no-update-lock-file path:/etc/nixos#nixosConfigurations.workstation.config.system.build.toplevel
 ```
 
 On success, Nix prints a realized `/nix/store/…-nixos-system-…` path. The running system and boot default stay unchanged, and there is no new result link in the working directory. If the build fails, diagnose it before activating.
@@ -481,33 +495,33 @@ Decide separately whether the candidate should run now and whether it should bec
 
 The direct `nix build --no-link` above avoids the result link commonly produced by `nixos-rebuild build`. For administrative activation with `nixos-rebuild`, keep the same explicit selector and a coherent, unchanged source/lock pair so that you act on the candidate you reviewed.
 
-Choose one of the following **SYSTEM CHANGE** alternatives from any directory, with local console/recovery access and backups in place. Stage 1 describes authorized administrative alternatives. If flag support differs, check the installed `nixos-rebuild --help`. Keep the per-invocation feature option until the feature module is activated.
+Choose one of the following **SYSTEM CHANGE** alternatives from any directory, with local console/recovery access and backups in place. Stage 1 describes authorized administrative alternatives. If flag support differs, check the installed `nixos-rebuild --help`.
 
 Standard NixOS enables `sudo` by default, but it still requires authorization; this repository's desktop preset disables it. If a root password is available, use authorized `su -`, omit `sudo` only for administrative examples, then `exit` the root shell after the admin work (see stage 1). Do not run unprivileged commands as root.
+
+**First privileged flake rebuild:** The ordinary user's feature settings need not be available to the account running the rebuild. If that account lacks the features, append `--option extra-experimental-features 'nix-command flakes'` to the chosen command below, using the same authorized `sudo` or `su -` workflow. This is an option for that invocation, not a separate command. The declared NixOS setting applies once the candidate is active: for `test` and `switch`, that is on successful activation; for `boot`, it is only after booting into the candidate.
 
 **Test the candidate now without changing the boot default.** This really activates services: expect possible restarts, dropped connections, and stateful-service writes or migrations. Rebooting into the previous default does not undo those persistent effects; they require independent data recovery. An activation that fails partway through can still leave service changes: inspect runtime state and follow the prepared recovery plan. The same activation risks apply when switching immediately.
 
 ```bash
-sudo nixos-rebuild test --flake path:/etc/nixos#workstation --option extra-experimental-features 'nix-command flakes'
+sudo nixos-rebuild test --flake path:/etc/nixos#workstation
 ```
 
 **Select the candidate for the next boot without activating it now.**
 
 ```bash
-sudo nixos-rebuild boot --flake path:/etc/nixos#workstation --option extra-experimental-features 'nix-command flakes'
+sudo nixos-rebuild boot --flake path:/etc/nixos#workstation
 ```
 
 **Activate the candidate now and make it the next boot default.**
 
 ```bash
-sudo nixos-rebuild switch --flake path:/etc/nixos#workstation --option extra-experimental-features 'nix-command flakes'
+sudo nixos-rebuild switch --flake path:/etc/nixos#workstation
 ```
 
 ### Observing activation and runtime results
 
 After activation, check the changed feature, existing access methods, and relevant logs. Successful build and activation exit codes alone do not show that these workflows still work. Kernel and boot-sensitive changes can require a reboot; userspace activation is different from a fresh boot. User services also have lifecycles that a system rebuild does not universally restart, as described by the [configuration warnings](https://nixos.org/manual/nixos/stable/#sec-changing-config).
-
-Later modern CLI examples assume activation of `nix-cli.nix`. Until that activation, the same `--extra-experimental-features 'nix-command flakes'` prefix remains necessary for `nix` commands. Source declaration alone does not enable the persistent settings.
 
 After successfully activating `cli-tools.nix`, run these **READ-ONLY** checks from any directory. `hello --version` executes the selected trusted program to inspect its version:
 
@@ -527,7 +541,7 @@ First you want to verify that the candidate builds while leaving the running ser
 <details>
 <summary>Worked solution</summary>
 
-The direct top-level `nix build --no-link` prepares artifacts. Authorized `nixos-rebuild boot --flake path:/etc/nixos#workstation` selects the later boot candidate. `test` would activate immediately and therefore has a different effect from the second goal.
+The direct top-level `nix build --no-link` prepares artifacts using the [ordinary-user setup](#evaluation-before-building). Authorized `nixos-rebuild boot --flake path:/etc/nixos#workstation` selects the later boot candidate; see the [first privileged rebuild note above](#choosing-an-activation-mode) if the rebuild account lacks the features. `test` would activate immediately and therefore has a different effect from the second goal.
 
 </details>
 
@@ -833,7 +847,7 @@ You want to run Hello once, realize its artifact without creating a result link,
 <details>
 <summary>Worked solution</summary>
 
-`nix run path:/etc/nixos#default` performs single execution. `nix build --no-link path:/etc/nixos#default` prepares the artifact. `nix develop path:/etc/nixos` enters the declared shell. All can fetch or build; run and develop additionally execute code with the invoking user's permissions.
+`nix run --no-update-lock-file path:/etc/nixos#default` performs single execution. `nix build --no-link --no-update-lock-file path:/etc/nixos#default` prepares the artifact. `nix develop --no-update-lock-file path:/etc/nixos` enters the declared shell. All can fetch or build; run and develop additionally execute code with the invoking user's permissions.
 
 </details>
 
@@ -974,7 +988,9 @@ A working console or alternate login remains available. Activation output, `syst
 
 Use the table to find the operation you intend, then read its owning stage for the full prerequisites and safety context. The commands below are individual lookups, not a script.
 
-The examples assume the feature module has been activated, placeholders have been verified and substituted, and the `/etc/nixos` source tree has been checked for secrets. Operations that consume an existing lock assume the pins are already in place. Before the module is activated, use the temporary feature settings shown in stages 6 and 7. Explicit source references work independently of the working directory.
+For ordinary-user examples, complete the [one-time user Nix setup](#evaluation-before-building); NixOS activation is not required. Administrative examples still require authorization. If the account running the first privileged flake rebuild lacks the features, see the [bootstrap note in stage 7](#choosing-an-activation-mode).
+
+The examples assume placeholders have been verified and substituted and the `/etc/nixos` source tree has been checked for secrets. Operations that consume an existing lock assume the pins are already in place. Explicit source references work independently of the working directory.
 
 | Task | Effect | Stage |
 | --- | --- | --- |
