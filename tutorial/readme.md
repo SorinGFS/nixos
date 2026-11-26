@@ -2,6 +2,9 @@
 
 ## 1. Scope, safety, and the mental model
 
+<details>
+<summary>Read this section</summary>
+
 ### The scope of “zero to hero”
 
 This tutorial develops Nix language, functional-programming, and declarative-configuration concepts from first principles. “Hero” denotes practical competence with a modest NixOS configuration: explaining its structure, inspecting inputs, changing source, building results, activating changes, updating dependencies, recovering earlier selections, and sharing modules. Further specialization rests on those skills and release-matched references.
@@ -62,7 +65,12 @@ You've edited a package list, updated `flake.lock`, and built the system. Has th
 
 Building alone does not start the service. System activation applies the declared SSH configuration; a runtime service inspection establishes the resulting state. Editing, locking, and building prepare the transition. Activation output and service inspection remain necessary because a failure can leave a partially changed system.
 
+</details>
+
 ## 2. Components and first-expression evaluation
+
+<details>
+<summary>Read this section</summary>
 
 ### Nix, Nixpkgs, NixOS, the store, and flakes
 
@@ -110,7 +118,12 @@ A selected editor references a runtime library in the store, but the library is 
 
 No. The editor's closure retains the referenced library. Nix's reachability and garbage-collection mechanisms identify unused store objects; manual deletion based on package-list membership would disregard runtime dependencies.
 
+</details>
+
 ## 3. Reading the Nix language
+
+<details>
+<summary>Read this section</summary>
 
 ### Values, lists, and attribute sets
 
@@ -185,7 +198,12 @@ The complete set preserves each value's intended type:
 }
 ```
 
+</details>
+
 ## 4. Inspecting installed configuration and modules
+
+<details>
+<summary>Read this section</summary>
 
 ### Preserving the installed-machine foundation
 
@@ -249,7 +267,12 @@ Someone proposes replacing your installed `configuration.nix` with an online edi
 
 The existing `configuration.nix` and its imports remain included. A separate module supplies the new package definition alongside them. Storage identifiers, bootloader settings, users, and `stateVersion` remain specific to the installed machine.
 
+</details>
+
 ## 5. Choosing package scope
+
+<details>
+<summary>Read this section</summary>
 
 ### Running a package for a single use
 
@@ -325,7 +348,12 @@ You removed Hello from your profile, but it still runs after you activate `cli-t
 
 `environment.systemPackages` also selects Hello. Removing its entry from `modules/cli-tools.nix`, rebuilding, and deliberately activating changes the system selection. A fresh shell verifies the resulting lookup; an existing temporary shell can expose another copy independently.
 
+</details>
+
 ## 6. Wrapping the existing system in one flake
+
+<details>
+<summary>Read this section</summary>
 
 ### Inputs, outputs, and the lock file
 
@@ -438,7 +466,12 @@ The machine's hostname is not `workstation`. Can you still use `path:/etc/nixos#
 
 Yes. The selector directly chooses the `workstation` configuration attribute. Its composed modules retain the machine's actual hostname, so the two names can differ.
 
+</details>
+
 ## 7. Building, testing, and activating the system
+
+<details>
+<summary>Read this section</summary>
 
 ### Building the system artifacts
 
@@ -510,7 +543,12 @@ First you want to verify that the candidate builds while leaving the running ser
 
 The direct top-level `nix build --no-link` prepares artifacts using the [ordinary-user setup](#evaluation-before-building). Authorized `nixos-rebuild boot --flake path:/etc/nixos#workstation` selects the later boot candidate; see the [first privileged rebuild note above](#choosing-an-activation-mode) if the rebuild account lacks the features. `test` would activate immediately and therefore has a different effect from the second goal.
 
+</details>
+
 ## 8. Accounts, networking, services, and an optional desktop
+
+<details>
+<summary>Read this section</summary>
 
 ### Adding an account while preserving administrator access
 
@@ -592,7 +630,12 @@ You set `services.openssh.openFirewall = false;`. Does that make SSH unreachable
 
 Not necessarily. The SSH module adds no automatic firewall opening. Existing separate allow rules remain effective, and upstream isolation is a separate property. Reviewed firewall/network exposure and observed authentication/access establish the actual boundary.
 
+</details>
+
 ## 9. Updating inputs and planning release upgrades
+
+<details>
+<summary>Read this section</summary>
 
 ### Refreshing pins as a separate maintenance step
 
@@ -644,7 +687,12 @@ Adapting this tutorial to another installed release's maintained branch preserve
 
 `flake.lock` records the updated resolution. The branch request in `flake.nix` and OS activation remain unchanged. Pin review and system building precede a deliberate activation-mode selection.
 
+</details>
+
 ## 10. Recovery and garbage collection
+
+<details>
+<summary>Read this section</summary>
 
 ### Generations and rollback boundaries
 
@@ -704,7 +752,12 @@ A service upgrade migrated its database, and the older service cannot read the n
 
 Not by itself. The older generation restores selected software and generated configuration. Database recovery requires the service's documented migration/recovery procedure and a suitable data backup. Separate source/lock restoration ensures that the next rebuild describes the intended recovered system.
 
+</details>
+
 ## 11. Extending the flake with development tools
+
+<details>
+<summary>Read this section</summary>
 
 ### Adding a development shell
 
@@ -796,7 +849,12 @@ You want to run Hello once, realize its artifact without creating a result link,
 
 `nix run --no-update-lock-file path:/etc/nixos#default` performs single execution. `nix build --no-link --no-update-lock-file path:/etc/nixos#default` prepares the artifact. `nix develop --no-update-lock-file path:/etc/nixos` enters the declared shell. All can fetch or build; run and develop additionally execute code with the invoking user's permissions.
 
+</details>
+
 ## 12. Reusing modules and customizing package sets
+
+<details>
+<summary>Read this section</summary>
 
 ### Declaring a reusable module interface
 
@@ -864,7 +922,12 @@ You want to share SSH policy between machines, rename one Hello derivation for a
 
 A reusable NixOS module owns service policy. `overrideAttrs` customizes the single derivation. A deliberately scoped overlay supplies the package-set-wide replacement. Any use of `override` depends on the actual recipe's accepted arguments rather than assumed generic parameters.
 
+</details>
+
 ## 13. Systematic diagnosis and next-step selection
+
+<details>
+<summary>Read this section</summary>
 
 ### Reading errors at the relevant layer
 
@@ -917,7 +980,12 @@ Your changed SSH configuration builds successfully, but remote login fails. What
 
 A working console or alternate login remains available. Activation output, `systemctl status sshd`, and the service journal provide three immediate observations. Binding, firewall, authentication, and network reachability then narrow the relevant boundary. Updating unrelated inputs adds uncertainty without establishing the login failure's cause.
 
+</details>
+
 ## Appendix A. Command reference by task
+
+<details>
+<summary>Read this section</summary>
 
 ### Selecting operations by intended effect
 
@@ -1104,7 +1172,12 @@ nix store gc --dry-run
 nix store gc
 ```
 
+</details>
+
 ## Appendix B. Glossary
+
+<details>
+<summary>Read this section</summary>
 
 ### Connecting terminology to the mental model
 
@@ -1141,7 +1214,12 @@ Use the glossary to connect each term to its role in source, storage, selection,
 
 For example, evaluating a flake computes a description, realizing the system output obtains artifacts, and activation applies changes to the running system. Each term marks a different transition.
 
+</details>
+
 ## Appendix C. Next-step plan
+
+<details>
+<summary>Read this section</summary>
 
 ### Progressing through one responsibility at a time
 
@@ -1155,7 +1233,12 @@ Work on one machine and one purpose at a time. Small changes you understand make
 
 Before each change, record the intended result, source files and pins, what you'll observe to verify success, whether you'll activate, and what recovery target you can use. The owning stage gives the operation and its prerequisites.
 
+</details>
+
 ## Appendix D. Sources and evidence limits
+
+<details>
+<summary>Read this section</summary>
 
 ### Selecting version-matched references
 
@@ -1179,3 +1262,5 @@ Use these primary references when you need the full syntax, source-selection rul
 - Lock CLI: [update](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-update.html), [lock](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-flake-lock.html).
 - Cleanup: [GC explanation](https://nix.dev/manual/nix/stable/package-management/garbage-collection.html), [store GC](https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-store-gc.html), [collect-garbage](https://nix.dev/manual/nix/stable/command-ref/nix-collect-garbage.html).
 - Secondary official community wiki: [Nixos-rebuild](https://wiki.nixos.org/wiki/Nixos-rebuild), [Flakes](https://wiki.nixos.org/wiki/Flakes). The applicable primary manual takes precedence over dated wiki notes.
+
+</details>
