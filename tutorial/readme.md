@@ -60,12 +60,7 @@ Before each operation, check the account, source location, substitutions, and po
 
 You've edited a package list, updated `flake.lock`, and built the system. Has the newly declared SSH service started yet? Name the missing transition and the runtime observation that would show whether the service is actually running.
 
-<details>
-<summary>Worked solution</summary>
-
-System activation applies the declared SSH configuration; a runtime service inspection establishes the resulting state. Editing, locking, and building prepare the transition. Activation output and service inspection remain necessary because a failure can leave a partially changed system.
-
-</details>
+Building alone does not start the service. System activation applies the declared SSH configuration; a runtime service inspection establishes the resulting state. Editing, locking, and building prepare the transition. Activation output and service inspection remain necessary because a failure can leave a partially changed system.
 
 ## 2. Components and first-expression evaluation
 
@@ -113,12 +108,7 @@ A text-configuration change can reuse most packages; a foundational-library chan
 
 A selected editor references a runtime library in the store, but the library is not on the explicit package list. Does that make the library disposable? Explain the difference between explicit selection and transitive reachability.
 
-<details>
-<summary>Worked solution</summary>
-
-The editor's closure retains the referenced library. Nix's reachability and garbage-collection mechanisms identify unused store objects; manual deletion based on package-list membership would disregard runtime dependencies.
-
-</details>
+No. The editor's closure retains the referenced library. Nix's reachability and garbage-collection mechanisms identify unused store objects; manual deletion based on package-list membership would disregard runtime dependencies.
 
 ## 3. Reading the Nix language
 
@@ -184,9 +174,6 @@ in
 
 Write an attribute set with Boolean `enabled` set to `true`, `tools` as a list of the strings `hello` and `git`, and numeric `count` equal to the list's length (`2`). Check that the Boolean and number are unquoted and the list elements are separated by whitespace.
 
-<details>
-<summary>Worked solution</summary>
-
 The complete set preserves each value's intended type:
 
 ```nix
@@ -197,8 +184,6 @@ The complete set preserves each value's intended type:
     count = 2;
 }
 ```
-
-</details>
 
 ## 4. Inspecting installed configuration and modules
 
@@ -262,12 +247,7 @@ An ordinary `networking.hostName = "another-name";` definition wins over this de
 
 Someone proposes replacing your installed `configuration.nix` with an online editor module. The installed file contains hardware imports and administrator definitions. How would you add the editor definition without discarding any machine-specific settings?
 
-<details>
-<summary>Worked solution</summary>
-
 The existing `configuration.nix` and its imports remain included. A separate module supplies the new package definition alongside them. Storage identifiers, bootloader settings, users, and `stateVersion` remain specific to the installed machine.
-
-</details>
 
 ## 5. Choosing package scope
 
@@ -343,12 +323,7 @@ For a system package, edit the owning module instead. Omitting `pkgs.hello` from
 
 You removed Hello from your profile, but it still runs after you activate `cli-tools.nix`. The system, a user profile, and a temporary development shell can each put tools on `PATH`. Which definition still selects Hello in this scenario, and what declarative change would remove that selection without confusing it with profile history?
 
-<details>
-<summary>Worked solution</summary>
-
 `environment.systemPackages` also selects Hello. Removing its entry from `modules/cli-tools.nix`, rebuilding, and deliberately activating changes the system selection. A fresh shell verifies the resulting lookup; an existing temporary shell can expose another copy independently.
-
-</details>
 
 ## 6. Wrapping the existing system in one flake
 
@@ -461,12 +436,7 @@ The lock should now contain resolved inputs, and evaluation should print the mac
 
 The machine's hostname is not `workstation`. Can you still use `path:/etc/nixos#workstation` without renaming the machine? Explain how selecting `nixosConfigurations.workstation` explicitly differs from automatic hostname-based selection, and what still determines `networking.hostName`.
 
-<details>
-<summary>Worked solution</summary>
-
-The selector directly chooses the `workstation` configuration attribute. Its composed modules retain the machine's actual hostname, so the two names can differ.
-
-</details>
+Yes. The selector directly chooses the `workstation` configuration attribute. Its composed modules retain the machine's actual hostname, so the two names can differ.
 
 ## 7. Building, testing, and activating the system
 
@@ -538,12 +508,7 @@ A fresh terminal can clear stale shell-command lookup. Use the observed result a
 
 First you want to verify that the candidate builds while leaving the running services alone. Later you want to select it for the next boot, still without activating it now. Which operation fits each goal, and why would `test` not fit the second one?
 
-<details>
-<summary>Worked solution</summary>
-
 The direct top-level `nix build --no-link` prepares artifacts using the [ordinary-user setup](#evaluation-before-building). Authorized `nixos-rebuild boot --flake path:/etc/nixos#workstation` selects the later boot candidate; see the [first privileged rebuild note above](#choosing-an-activation-mode) if the rebuild account lacks the features. `test` would activate immediately and therefore has a different effect from the second goal.
-
-</details>
 
 ## 8. Accounts, networking, services, and an optional desktop
 
@@ -625,12 +590,7 @@ For a reviewed GNOME choice, this optional **SOURCE EDIT** is the complete `/etc
 
 You set `services.openssh.openFirewall = false;`. Does that make SSH unreachable from every remote host? Explain which automatic rule the setting prevents and how binding, independently configured firewall rules, upstream networking, and authentication still matter.
 
-<details>
-<summary>Worked solution</summary>
-
-The SSH module adds no automatic firewall opening. Existing separate allow rules remain effective, and upstream isolation is a separate property. Reviewed firewall/network exposure and observed authentication/access establish the actual boundary.
-
-</details>
+Not necessarily. The SSH module adds no automatic firewall opening. Existing separate allow rules remain effective, and upstream isolation is a separate property. Reviewed firewall/network exposure and observed authentication/access establish the actual boundary.
 
 ## 9. Updating inputs and planning release upgrades
 
@@ -682,12 +642,7 @@ Adapting this tutorial to another installed release's maintained branch preserve
 
 `nix flake update nixpkgs --flake path:/etc/nixos` finishes, but `flake.nix` still requests the same branch. Which file changed, and what review, build, and activation decisions remain before a new system is running?
 
-<details>
-<summary>Worked solution</summary>
-
 `flake.lock` records the updated resolution. The branch request in `flake.nix` and OS activation remain unchanged. Pin review and system building precede a deliberate activation-mode selection.
-
-</details>
 
 ## 10. Recovery and garbage collection
 
@@ -747,12 +702,7 @@ Collection removes unreachable paths. Retained generations still provide roots, 
 
 A service upgrade migrated its database, and the older service cannot read the new format. Does booting an older generation recover the data? Identify the service-specific recovery procedure and backup you would need separately from the software rollback.
 
-<details>
-<summary>Worked solution</summary>
-
-The older generation restores selected software and generated configuration. Database recovery requires the service's documented migration/recovery procedure and a suitable data backup. Separate source/lock restoration ensures that the next rebuild describes the intended recovered system.
-
-</details>
+Not by itself. The older generation restores selected software and generated configuration. Database recovery requires the service's documented migration/recovery procedure and a suitable data backup. Separate source/lock restoration ensures that the next rebuild describes the intended recovered system.
 
 ## 11. Extending the flake with development tools
 
@@ -844,12 +794,7 @@ nix run --no-update-lock-file path:/etc/nixos#default -- --greeting 'One flake, 
 
 You want to run Hello once, realize its artifact without creating a result link, and enter the declared environment with several tools. Which command fits each task, and which one starts a shell?
 
-<details>
-<summary>Worked solution</summary>
-
 `nix run --no-update-lock-file path:/etc/nixos#default` performs single execution. `nix build --no-link --no-update-lock-file path:/etc/nixos#default` prepares the artifact. `nix develop --no-update-lock-file path:/etc/nixos` enters the declared shell. All can fetch or build; run and develop additionally execute code with the invoking user's permissions.
-
-</details>
 
 ## 12. Reusing modules and customizing package sets
 
@@ -917,12 +862,7 @@ This is an incomplete composition plan until the actual second host's hardware c
 
 You want to share SSH policy between machines, rename one Hello derivation for an experiment, and replace a library consistently across a package set. Which mechanism fits each task, and how far could each change reach when you rebuild?
 
-<details>
-<summary>Worked solution</summary>
-
 A reusable NixOS module owns service policy. `overrideAttrs` customizes the single derivation. A deliberately scoped overlay supplies the package-set-wide replacement. Any use of `override` depends on the actual recipe's accepted arguments rather than assumed generic parameters.
-
-</details>
 
 ## 13. Systematic diagnosis and next-step selection
 
@@ -975,12 +915,7 @@ A concise change record contains the intended result, changed files, input revis
 
 Your changed SSH configuration builds successfully, but remote login fails. What three runtime observations would help narrow the cause, and what recovery access would you keep available? Explain why refreshing every flake input would not establish the cause of this failure.
 
-<details>
-<summary>Worked solution</summary>
-
 A working console or alternate login remains available. Activation output, `systemctl status sshd`, and the service journal provide three immediate observations. Binding, firewall, authentication, and network reachability then narrow the relevant boundary. Updating unrelated inputs adds uncertainty without establishing the login failure's cause.
-
-</details>
 
 ## Appendix A. Command reference by task
 
