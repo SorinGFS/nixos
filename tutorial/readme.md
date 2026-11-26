@@ -483,6 +483,8 @@ The direct `nix build --no-link` above avoids the result link commonly produced 
 
 Choose one of the following **SYSTEM CHANGE** alternatives from any directory, with local console/recovery access and backups in place. Stage 1 describes authorized administrative alternatives. If flag support differs, check the installed `nixos-rebuild --help`. Keep the per-invocation feature option until the feature module is activated.
 
+Standard NixOS enables `sudo` by default, but it still requires authorization; this repository's desktop preset disables it. If a root password is available, use authorized `su -`, omit `sudo` only for administrative examples, then `exit` the root shell after the admin work (see stage 1). Do not run unprivileged commands as root.
+
 **Test the candidate now without changing the boot default.** This really activates services: expect possible restarts, dropped connections, and stateful-service writes or migrations. Rebooting into the previous default does not undo those persistent effects; they require independent data recovery. An activation that fails partway through can still leave service changes: inspect runtime state and follow the prepared recovery plan. The same activation risks apply when switching immediately.
 
 ```bash
@@ -1050,6 +1052,8 @@ nix build --no-link --print-out-paths --no-update-lock-file path:/etc/nixos#nixo
 **Choose an activation mode — SYSTEM CHANGE (stage 7)**
 
 Choose **one** with authorized administration, local console/recovery access, backups, and the reviewed source/lock pair unchanged. Immediate activation can restart services, drop connections, or cause persistent writes or migrations that booting the previous default does not undo. If activation fails partway through, inspect runtime state and follow the recovery plan; service changes may already have occurred.
+
+Standard NixOS enables `sudo` by default, but it still requires authorization; this repository's desktop preset disables it. If a root password is available, use authorized `su -`, omit `sudo` only for administrative examples, then `exit` the root shell after the admin work (see stage 1). Do not run unprivileged commands as root.
 
 To activate now without changing the boot default:
 
