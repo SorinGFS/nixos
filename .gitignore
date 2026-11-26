@@ -1,2 +1,5 @@
 # Materialized workspace data is generated state.
 /#/
+
+# agents
+.agents/
